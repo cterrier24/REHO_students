@@ -10,8 +10,7 @@ numpy
 openpyxl
 pandas<2.0.0
 plotly
-psycopg2<3.0.0 ; platform_system != "Windows"
-psycopg2-binary<3.0.0 ; platform_system == "Windows"
+psycopg2-binary<3.0.0
 pvlib
 pyproj
 python-dotenv
