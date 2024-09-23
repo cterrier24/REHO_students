@@ -502,8 +502,11 @@ class REHO(MasterProblem):
         #k must be always positive, and c must be always between y_start and y_stop
         y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
         EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
+        EMOO_list=(EMOO_list-EMOO_list[0])*(E_stop-E_start)/(EMOO_list[-1]-EMOO_list[0])+E_start # Stretching the curve
         return EMOO_list,y_span
+ 
 
+        
 
     def get_battery_pathway_from_EV(self,N_EV_start=0,N_EV_stop=15,c_EV=2039,k_EV=1,y_start=2024,y_stop=2050,n=7,EV_battery_lifetime=10,battery_reuse_lifetime=10,EV_battery_capacity=70,EV_battery_degradation_factor=0.7):
 
