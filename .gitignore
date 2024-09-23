@@ -320,3 +320,5 @@ reho/test/results/*
 # Scripts
 scripts/*
 !scripts/examples/
+
+requirements.txt
