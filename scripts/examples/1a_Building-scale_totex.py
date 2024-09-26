@@ -5,8 +5,9 @@ if __name__ == '__main__':
 
     # Set building parameters
     reader = QBuildingsReader()
-    reader.establish_connection('Geneva')
-    qbuildings_data = reader.read_db(transformer=234, nb_buildings=1)
+    # reader.establish_connection('Geneva')
+    # qbuildings_data = reader.read_db(transformer=234, nb_buildings=1)
+    qbuildings_data = reader.read_csv(buildings_filename=os.path.join(os.getcwd(),'data','buildings','buildings_11230.gpkg'),nb_buildings=2)  # read data 
 
     # Select clustering options for weather data
     cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
@@ -17,6 +18,7 @@ if __name__ == '__main__':
     scenario['name'] = 'totex'
     scenario['exclude_units'] = ['Battery', 'NG_Cogeneration']
     scenario['enforce_units'] = []
+    #scenario['EMOO'] = {'EMOO_PV':0.3}
 
     # Initialize available units and grids
     grids = infrastructure.initialize_grids()
