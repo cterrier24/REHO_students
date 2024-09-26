@@ -514,11 +514,11 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
     df_Results["df_District"] = df_District.sort_index()
 
     # df_beta
-    emoo_keys = ["EMOO_CAPEX", "EMOO_OPEX", "EMOO_GWP", "EMOO_TOTEX", "EMOO_lca"]
+    emoo_keys = ["EMOO_CAPEX", "EMOO_OPEX", "EMOO_GWP", "EMOO_TOTEX", "EMOO_lca", "EMOO_PV", "EMOO_HP"]
     list_keys = [i for i in scenario["EMOO"].keys() if i in emoo_keys]
     if not list_keys:
-        df = pd.DataFrame([0.0] * 16)
-        df.index = ['CAPEX', 'OPEX', 'GWP', 'TOTEX'] + list(get_ampl_data(ampl, 'Lca_kpi').index)
+        df = pd.DataFrame([0.0] * 18)
+        df.index = ['CAPEX', 'OPEX', 'GWP', 'TOTEX', 'PV', 'HP'] + list(get_ampl_data(ampl, 'Lca_kpi').index)
         df.columns = ["beta"]
         df_Results["df_beta"] = df
     else:
@@ -530,7 +530,11 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
         df3.columns = ['GWP']
         df4 = get_ampl_dual_values_in_pandas(ampl, 'EMOO_TOTEX_constraint', False)
         df4.columns = ['TOTEX']
-        df_beta = pd.concat([df1, df2, df3, df4], axis=1).stack().droplevel(0)
+        df6 = get_ampl_dual_values_in_pandas(ampl,'EMOO_PV_constraint',False)
+        df6.columns = ['PV']
+        df7 = get_ampl_dual_values_in_pandas(ampl,'EMOO_HP_constraint',False)
+        df7.columns = ['HP']
+        df_beta = pd.concat([df1, df2, df3, df4, df6, df7], axis=1).stack().droplevel(0)
         df_beta = pd.DataFrame(df_beta, columns=['beta'])
         df5 = get_ampl_dual_values_in_pandas(ampl, 'EMOO_lca_constraint', False)
         df5.columns = ['beta']

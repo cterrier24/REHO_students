@@ -418,9 +418,9 @@ class REHO(MasterProblem):
         self.infrastructure = infrastructure.Infrastructure(buildings,  units, self.infrastructure.grids)
 
 
-    def pathway(self,EMOO_list=[0,0,0],EMOO_type="GWP",existing_init=None,EV=[],EV_battery=[]):
+    def pathway(self,EMOO_list=[0,0,0],EMOO_list2= None,EMOO_type="GWP",EMOO_type2=None,existing_init=None,EV=[],EV_battery=[]):
 
-        
+        # Existing init is not working anymore
         if existing_init is None: # Check whether a file with existing units is used
             if EV != []:# If a list of number of EV is sent, it will specify them for each iteration. This is a special case since no cost model of EV
                 self.parameters["n_vehicles"] = EV[0]
@@ -456,8 +456,13 @@ class REHO(MasterProblem):
             self.single_optimization(Pareto_ID=-1)
             if 'EMOO' not in self.scenario.keys():
                 self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[0]}
+                if EMOO_list2 is not None:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
+
             else:
                 self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[0]
+                if EMOO_list2 is not None:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
             if EV != []:
                 self.parameters["n_vehicles"] = EV[0]
             if EV_battery != []:
@@ -479,8 +484,12 @@ class REHO(MasterProblem):
         for i in range(1,len(EMOO_list)):
             if 'EMOO' not in self.scenario.keys():
                 self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[i]}
+                if EMOO_list2 is not None:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[i]
             else:
                 self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[i]
+                if EMOO_list2 is not None:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[i]
             if EV != []:
                 self.parameters["n_vehicles"] = EV[i]
             if EV_battery != []:
@@ -503,6 +512,15 @@ class REHO(MasterProblem):
         y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
         EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
         EMOO_list=(EMOO_list-EMOO_list[0])*(E_stop-E_start)/(EMOO_list[-1]-EMOO_list[0])+E_start # Stretching the curve
+        return EMOO_list,y_span
+    
+    def get_logistic_partial(self,E_start=0,E_stop=1,y_start=2024,y_stop=2050,k=0.1,y=2024,E=0.6,n=5):
+        # If you don't want to start from E_start with a flat slope, because you know a measure (y,E) (The logistic curve started earlier than y_start). You can start from a partial logistic curve. 
+        # Since a measure is taken (y,E), the number of parameters to select is reduced by one. This means, instead of selecting k and c, you only select k: c is deduced from the measure (y,E). 
+        c=np.log((E_start-E_stop)/(E-E_stop)-1)/(-k)+y
+        y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
+        EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
+        EMOO_list=(EMOO_list-EMOO_list[0])*(E_stop-E)/(EMOO_list[-1]-EMOO_list[0])+E # Stretching the curve
         return EMOO_list,y_span
  
 

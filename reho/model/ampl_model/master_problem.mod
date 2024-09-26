@@ -37,6 +37,13 @@ param n_years default 25;
 param i_rate default 0.02;
 param tau := i_rate*(1+i_rate)^n_years/(((1+i_rate)^n_years)-1);
 
+
+# PV constraint param
+param PV_house_installed{f in FeasibleSolutions, h in House} default 0;
+
+# HP constraint param
+param HP_house_installed{f in FeasibleSolutions, h in House} default 0;
+
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
 # Convexity constraints
@@ -113,6 +120,9 @@ subject to TOTAL_line_c5{l in ResourceBalances, p in Period,t in Time[p]}:
 subject to TOTAL_line_c6{l in ResourceBalances, p in Period,t in Time[p]}:
  sum{f in FeasibleSolutions, h in House} (Grid_demand[l,f,h,p,t] * lambda[f,h]) <= sum{h in House} Grids_flowrate[l,h];
 
+
+
+
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
 # Units
@@ -131,6 +141,21 @@ Units_Mult[u]-Units_Ext[u] >= Units_Use[u]*Units_Fmin[u];
 
 subject to Unit_sizing_c2{u in Units}:
 Units_Mult[u]-Units_Ext[u] <= Units_Use[u]*(Units_Fmax[u]-Units_Ext[u]);
+
+# PV constraint variable
+var PV_tot >= -1e-4;
+
+# PV constraint
+subject to PV_installed:
+PV_tot = sum{f in FeasibleSolutions, h in House}(PV_house_installed[f,h]*lambda[f,h]);
+
+
+# HP constraint variable
+var HP_tot >= -1e-4;
+
+# HP constraint
+subject to HP_installed:
+HP_tot = sum{u in UnitsOfType['HeatPump']}(Units_Mult[u])+sum{f in FeasibleSolutions, h in House}(HP_house_installed[f,h]*lambda[f,h]);
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
@@ -325,12 +350,16 @@ param EMOO_GWP default 1000;
 param EMOO_TOTEX default 1000;
 param EMOO_grid default 0;
 param EMOO_lca{k in Lca_kpi} default 1e6;
+param EMOO_PV default 0;
+param EMOO_HP default 1e3;
 param EMOO_elec_export default 0;
 
 var EMOO_slack                >= 0, <= abs(EMOO_CAPEX) * Area_tot;
 var EMOO_slack_opex           >= 0, <= abs(EMOO_OPEX)*Area_tot;
 var EMOO_slack_gwp            >= 0, <= abs(EMOO_GWP)*Area_tot;
 var EMOO_slack_totex          >= 0, <= abs(EMOO_TOTEX)*Area_tot;
+var EMOO_slack_pv             >= 0;
+var EMOO_slack_hp             >= 0;
 var EMOO_slack_elec_export >=0;
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -401,6 +430,12 @@ Costs_tot + EMOO_slack_totex = EMOO_TOTEX * Area_tot;
 
 subject to EMOO_lca_constraint{k in Lca_kpi} :
 lca_tot[k] <= EMOO_lca[k] * Area_tot;
+
+subject to EMOO_PV_constraint: # beta_pv
+PV_tot = EMOO_slack_pv + EMOO_PV * Area_tot;
+
+subject to EMOO_HP_constraint: # beta_hp
+HP_tot + EMOO_slack_hp = EMOO_HP * Area_tot;
 
 subject to EMOO_elec_export_constraint:
 sum{l in ResourceBalances, p in PeriodStandard,t in Time[p]} ( Network_demand[l,p,t] - Network_supply[l,p,t] ) / 1000  =  EMOO_slack_elec_export + EMOO_elec_export * (sum{h in House} ERA[h]);

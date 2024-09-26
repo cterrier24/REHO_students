@@ -436,23 +436,32 @@ class MasterProblem:
         df_Performance = self.return_combined_SP_results(self.results_SP, 'df_Performance')
         df_Performance = df_Performance.drop(index='Network', level='Hub').groupby(level=['Scn_ID', 'Pareto_ID', 'FeasibleSolution', 'Hub']).head(1).droplevel('Hub')  # select current Scn_ID and Pareto_ID
         df_Grid_t = np.round(self.return_combined_SP_results(self.results_SP, 'df_Grid_t'), 6)
+        df_Unit = self.return_combined_SP_results(self.results_SP, 'df_Unit') # for PV constraint
 
         # prepare df to have the same index as AMPL model
         if not self.method['include_all_solutions']:
             df_Performance = df_Performance.xs((Scn_ID, Pareto_ID), level=('Scn_ID', 'Pareto_ID'))
             df_Grid_t = df_Grid_t.xs((Scn_ID, Pareto_ID), level=('Scn_ID', 'Pareto_ID'))
+            df_Unit = df_Unit.xs((Scn_ID, Pareto_ID), level=('Scn_ID', 'Pareto_ID')) # for PV constraint
         else:
             df_Performance = df_Performance.droplevel(['Scn_ID', 'Pareto_ID'])
             df_Grid_t = df_Grid_t.droplevel(['Scn_ID', 'Pareto_ID'])
+            df_Unit = df_Unit.droplevel(['Scn_ID', 'Pareto_ID','Iter']) # for PV constraint
 
         df_Performance = df_Performance.droplevel(level='Iter')
         df_Grid_t = df_Grid_t.droplevel(level=['Iter', 'Hub']).reorder_levels(['Layer', 'FeasibleSolution', 'house', 'Period', 'Time'])
+        df_Unit = df_Unit.droplevel(level='Iter')
+        df_Unit_PV = df_Unit.loc[df_Unit.droplevel(['FeasibleSolution','house']).index.str.contains('PV')] # for PV constraint
+        df_Unit_HP = df_Unit.loc[df_Unit.droplevel(['FeasibleSolution','house']).index.str.contains('HeatPump')].groupby(level=['FeasibleSolution','house']).sum() # For HP constraint
+        df_Unit_PV = df_Unit_PV.droplevel(level='Unit') # for PV constraint
 
         # assign data
         MP_parameters = {}
         MP_parameters['Costs_inv_rep_SPs'] = df_Performance.Costs_inv + df_Performance.Costs_rep
         MP_parameters['Costs_ft_SPs'] = pd.DataFrame(np.round(df_Performance.Costs_ft, 6)).set_axis(['Costs_ft_SPs'], axis=1)
         MP_parameters['GWP_house_constr_SPs'] = pd.DataFrame(df_Performance.GWP_constr).set_axis(['GWP_house_constr_SPs'], axis=1)
+        MP_parameters['PV_house_installed'] =df_Unit_PV.Units_Mult # for PV constraint
+        MP_parameters['HP_house_installed'] =df_Unit_HP.Units_Mult # for PV constraint
 
         if self.method['save_lca']:
             df_lca_Units = self.return_combined_SP_results(self.results_SP, 'df_lca_Units')
@@ -1049,7 +1058,7 @@ class MasterProblem:
     def remove_emoo_constraints(scenario):
 
         EMOOs = list(scenario['EMOO'].keys())
-        keys_to_remove = ['EMOO_CAPEX', 'EMOO_OPEX', 'EMOO_GWP', 'EMOO_TOTEX', 'EMOO_lca', "EMOO_elec_export", "EMOO_EV"]
+        keys_to_remove = ['EMOO_CAPEX', 'EMOO_OPEX', 'EMOO_GWP', 'EMOO_TOTEX', 'EMOO_lca', "EMOO_elec_export", "EMOO_EV", "EMOO_PV", "EMOO_HP"]
         if 'EMOO' in scenario:
             for key in list(set(EMOOs).intersection(keys_to_remove)):
                 scenario['EMOO'].pop(key, None)
