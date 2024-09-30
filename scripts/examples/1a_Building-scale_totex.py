@@ -3,14 +3,15 @@ from reho.model.reho import *
 
 if __name__ == '__main__':
 
+    buildings_filename = os.path.join(os.getcwd(),'data_old','buildings','buildings_11230.gpkg')#str(Path(__file__).parent / 'data_old' / 'buildings.csv')
+
     # Set building parameters
+    # Load your buildings from a csv file instead of reading the database
     reader = QBuildingsReader()
-    # reader.establish_connection('Geneva')
-    # qbuildings_data = reader.read_db(transformer=234, nb_buildings=1)
-    qbuildings_data = reader.read_csv(buildings_filename=os.path.join(os.getcwd(),'data','buildings','buildings_11230.gpkg'),nb_buildings=2)  # read data 
+    qbuildings_data = reader.read_csv(buildings_filename=buildings_filename, nb_buildings=2)
 
     # Select clustering options for weather data
-    cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
+    cluster = {'Location': 'Fribourg', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
 
     # Set scenario
     scenario = dict()
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     method = {'building-scale': True}
 
     # Run optimization
-    reho = REHO(qbuildings_data=qbuildings_data, units=units, grids=grids, cluster=cluster, scenario=scenario, method=method, solver="gurobi")
+    reho = REHO(qbuildings_data=qbuildings_data, units=units, grids=grids, cluster=cluster, scenario=scenario, method=method, solver="HiGHS")
     reho.single_optimization()
 
     # Save results

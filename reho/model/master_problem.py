@@ -308,7 +308,7 @@ class MasterProblem:
             REHO = SubProblem(self.infrastructure_SP[h], buildings_data_SP, self.local_data, parameters_SP, self.set_indexed, self.cluster, scenario,
                               self.method, self.solver)
         ampl = REHO.build_model_without_solving()
-
+        
         if self.method['fix_units']:
             for unit in self.fix_units_list:
                 if unit == 'PV':
@@ -1245,7 +1245,7 @@ class MasterProblem:
 
             # TODO: better integration Units_Parameters specific to each house
             unit_param = self.infrastructure.Units_Parameters.loc[[string.endswith(h) for string in self.infrastructure.Units_Parameters.index]]
-            infrastructure_SP.Units_Parameters[["Units_Fmax", "Cost_inv2"]] = unit_param[["Units_Fmax", "Cost_inv2"]]
+            infrastructure_SP.Units_Parameters[["Units_Fmax"]] = unit_param[["Units_Fmax"]]
             self.infrastructure_SP[h] = infrastructure_SP
         return
 

@@ -49,6 +49,7 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
         df_N3['Costs_rep'] = df_N3['Costs_rep'] * tau[0]
         df_N4 = pd.DataFrame({'Costs_ft': [df4.sum()['Costs_ft']]})
         df_N5 = get_ampl_data(ampl, 'GWP_op')
+
         df_N6 = get_ampl_data(ampl, 'GWP_constr')
 
         df_PerformanceBuilding = pd.concat([df1, df2, df3, df4, df5, df6], axis=1)
@@ -132,7 +133,9 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
         df4 = get_ampl_data(ampl, 'GWP_Unit_constr')  # per year! For total, multiply with lifetime
         df5 = get_ampl_data(ampl, 'lifetime')
         df6 = get_ampl_data(ampl, 'Units_Ext', multi_index=False)
-        df_Unit = pd.concat([df1, df2, df3, df4, df5, df6], axis=1)
+        df7 = get_ampl_data(ampl, 'Cost_inv1', multi_index=False)
+        df8 = get_ampl_data(ampl, 'Cost_inv2', multi_index=False)
+        df_Unit = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8], axis=1)
         df_Unit.index.names = ['Unit']
         df_Unit = df_Unit.sort_index()
         if method['print_logs']:

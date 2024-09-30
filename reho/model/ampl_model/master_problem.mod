@@ -155,7 +155,7 @@ var HP_tot >= -1e-4;
 
 # HP constraint
 subject to HP_installed:
-HP_tot = sum{u in UnitsOfType['HeatPump']}(Units_Mult[u])+sum{f in FeasibleSolutions, h in House}(HP_house_installed[f,h]*lambda[f,h]);
+HP_tot = sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Mult[u])+sum{f in FeasibleSolutions, h in House}(HP_house_installed[f,h]*lambda[f,h]);
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#

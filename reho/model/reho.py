@@ -418,22 +418,58 @@ class REHO(MasterProblem):
         self.infrastructure = infrastructure.Infrastructure(buildings,  units, self.infrastructure.grids)
 
 
-    def pathway(self,EMOO_list=[0,0,0],EMOO_list2= None,EMOO_type="GWP",EMOO_type2=None,existing_init=None,EV=[],EV_battery=[]):
+    def pathway(self,EMOO_list=[0,0,0],EMOO_list2= None,EMOO_type="GWP",EMOO_type2=None,existing_init=None,EV=[],EV_battery=[],y_span=None,renovation_rate=0):
+        # This function computes a myopic pathway, constrained by the EMOO_lists of type EMOO_types on a given set of period y_span
+
+        # Get the scenario name
+        Scn_ID = self.scenario["name"]
+
+        # cost_inv1_data = file_reader(os.path.join(path_to_infrastructure,'cost_inv1_evolution.csv'))
+        # cost_inv2_data = file_reader(os.path.join(path_to_infrastructure,'cost_inv2_evolution.csv'))
+        # cost_inv1_data = cost_inv1_data.set_index('Unit')
+        # cost_inv2_data = cost_inv2_data.set_index('Unit')
+
+        # If the set of time period is not given
+        if y_span is None:
+            y_span=list(np.linspace(2025,2050,len(EMOO_list)))
+
+        # First: Update the technology costs:
+        self.update_cost_building_units(y_current=y_span[0])
+
+        ########################
+        #### Initialization ####
+        ########################
+
+        # The first iteration should be done outside the loop, since there are yet no results.
+
+        # Additionally, if a csv file is given with all existing units of the district,
+        # the model should run in a CAPEX formulation to be sure that the real installed capacities are coherent with the model.
+        # Then, the first iteration is performed based on the results of this artificial optimization
 
         # Existing init is not working anymore
-        if existing_init is None: # Check whether a file with existing units is used
+
+        if existing_init is None:
+
+            # Apply the constraints
             if EV != []:# If a list of number of EV is sent, it will specify them for each iteration. This is a special case since no cost model of EV
                 self.parameters["n_vehicles"] = EV[0]
             if EV_battery != []: # If a list of number of EV is sent, it will specify them for each iteration. This is a special case since used for free batteries from EV
                 self.parameters["Units_Ext_district"] = np.array(
                     [EV_battery[1] if "Battery_district" in u else 0 for u in self.infrastructure.UnitsOfDistrict])
-            Scn_ID=self.scenario["name"]
             if 'EMOO' not in self.scenario.keys():
                 self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[0]}
+                if EMOO_list2 is not None:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
             else:
                 self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[0]
+                if EMOO_list2 is not None:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
+
+            # Optimize the system
             self.single_optimization(Pareto_ID=0)
         else:
+
+            # Insert the existing data in the model
             if EV != []:
                 self.parameters["n_vehicles"] = EV[0]
             if EV_battery != []:
@@ -452,17 +488,20 @@ class REHO(MasterProblem):
             if 'Lines' in existing_init.keys():
                 self.parameters["Line_Ext"]=existing_init['Lines']
 
-            Scn_ID = self.scenario["name"]
+            # Run the artificial optimization
             self.single_optimization(Pareto_ID=-1)
+
+            # Apply the constraints
             if 'EMOO' not in self.scenario.keys():
                 self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[0]}
                 if EMOO_list2 is not None:
                     self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
-
             else:
                 self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[0]
                 if EMOO_list2 is not None:
                     self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
+
+            # Insert the results of the artifial optimization
             if EV != []:
                 self.parameters["n_vehicles"] = EV[0]
             if EV_battery != []:
@@ -480,8 +519,31 @@ class REHO(MasterProblem):
             self.parameters["Units_Ext_district"] = existing_units[existing_units.index.str.contains('district')]['Units_Mult'].values+Additional_battery
             self.parameters["Transformer_Ext"]=self.results[Scn_ID][-1]['df_Grid']['Capacity'].loc['Network'].values
             self.parameters["Line_Ext"]=self.results[Scn_ID][-1]['df_Grid']['Capacity'].loc[[h for h in self.infrastructure.houses]].unstack().values
+
+            
+
+            # # update cost
+            # cost_inv1=self.results[Scn_ID][-1]['df_Unit'][['Cost_inv1']]
+            # cost_inv2=self.results[Scn_ID][-1]['df_Unit'][['Cost_inv2']]
+            # for idx, row in cost_inv1_data.iterrows():
+            #     cost_inv1.loc[cost_inv1.index.str.contains(idx)]['Cost_inv1']=np.interp(y_span[i], cost_inv1_data.columns,row)
+            # for idx, row in cost_inv1_data.iterrows():
+            #     cost_inv2.loc[cost_inv2.index.str.contains(idx)]['Cost_inv2']=np.interp(y_span[i], cost_inv2_data.columns,row)
+            # self.parameters["Cost_inv1"]=np.array([cost_inv1[cost_inv1.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Cost_inv1'].to_list() for id, h in enumerate(self.infrastructure.houses)])
+            # self.parameters["Cost_inv2"]=np.array([cost_inv2[cost_inv2.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Cost_inv2'].to_list() for id, h in enumerate(self.infrastructure.houses)])
+            
+            # Optimize the system
             self.single_optimization(Pareto_ID=0)
+
+        ####################################################
+        #### Main loop: iteration over all time periods ####
+        ####################################################
+    
         for i in range(1,len(EMOO_list)):
+            # Update the unit costs:
+            self.update_cost_building_units(y_current=y_span[i])
+
+            # Update the constraints
             if 'EMOO' not in self.scenario.keys():
                 self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[i]}
                 if EMOO_list2 is not None:
@@ -490,37 +552,87 @@ class REHO(MasterProblem):
                 self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[i]
                 if EMOO_list2 is not None:
                     self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[i]
+
+            # Update the EVs
             if EV != []:
                 self.parameters["n_vehicles"] = EV[i]
             if EV_battery != []:
                 Additional_battery = np.array([EV_battery[i+1] if "Battery_district" in u else 0 for u in self.infrastructure.UnitsOfDistrict])-np.array([EV_battery[i] if "Battery_district" in u else 0 for u in self.infrastructure.UnitsOfDistrict])
             else:
                 Additional_battery = np.array([ 0 for u in self.infrastructure.UnitsOfDistrict])
+            
+            # Update the existing units
             existing_units = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
             self.parameters["Units_Ext"] = np.array([existing_units[existing_units.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Units_Mult'].to_list() for id, h in enumerate(self.infrastructure.houses)])
             self.parameters["Units_Ext"] = self.parameters["Units_Ext"] * 0.999
             self.parameters["Units_Ext_district"] = existing_units[existing_units.index.str.contains('district')]['Units_Mult'].values+Additional_battery
+
+            # Update the installed lines and transformers
             self.parameters["Transformer_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc['Network'].values
             self.parameters["Line_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc[
                 [h for h in self.infrastructure.houses]].unstack().values
+            
+            # Update the heat coefficient of the house
+            for h in self.infrastructure.House:
+                self.buildings_data[h]['U_h']=np.power((1-renovation_rate),y_span[i]-y_span[i-1])*self.buildings_data[h]['U_h']
+            # # Update cost
+            # cost_inv1=self.results[Scn_ID][i - 1]['df_Unit'][['Cost_inv1']]
+            # cost_inv2=self.results[Scn_ID][i - 1]['df_Unit'][['Cost_inv2']]
+            # for idx, row in cost_inv1_data.iterrows():
+            #     cost_inv1.loc[cost_inv1.index.str.contains(idx)]['Cost_inv1']=np.interp(y_span[i], cost_inv1_data.columns,row)
+            # for idx, row in cost_inv1_data.iterrows():
+            #     cost_inv2.loc[cost_inv2.index.str.contains(idx)]['Cost_inv2']=np.interp(y_span[i], cost_inv2_data.columns,row)
+            # self.parameters["Cost_inv1"]=np.array([cost_inv1[cost_inv1.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Cost_inv1'].to_list() for id, h in enumerate(self.infrastructure.houses)])
+            # self.parameters["Cost_inv2"]=np.array([cost_inv2[cost_inv2.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Cost_inv2'].to_list() for id, h in enumerate(self.infrastructure.houses)])
+            
+            # Optimize the new system
             self.single_optimization(Pareto_ID=i)
 
 
-    def get_logistic(self,E_start=1e-2,E_stop=1e-3,y_start=2024,y_stop=2050,k=1,c=2035,n=2):
+
+
+
+
+    def update_cost_building_units(self,cost_inv1_file=os.path.join(path_to_infrastructure,'cost_inv1_evolution.csv'),cost_inv2_file=os.path.join(path_to_infrastructure,'cost_inv2_evolution.csv'),y_current=2030):
+        if self.method['update_units_costs']:
+            cost_inv1_data=file_reader(cost_inv1_file)
+            cost_inv2_data=file_reader(cost_inv2_file)
+            cost_inv1_data = cost_inv1_data.set_index("Unit")
+            cost_inv2_data = cost_inv2_data.set_index("Unit")
+        else:
+            cost_inv1_data=pd.DataFrame()
+            cost_inv2_data=pd.DataFrame()
+
+        for h in self.infrastructure.House:
+            for idx, row in cost_inv1_data.iterrows():
+                self.infrastructure_SP[h].Units_Parameters.loc[self.infrastructure_SP[h].Units_Parameters.index.str.contains(idx),'Cost_inv1']=np.interp(y_current, cost_inv1_data.columns,row)
+            for idx, row in cost_inv2_data.iterrows():
+                self.infrastructure_SP[h].Units_Parameters.loc[self.infrastructure_SP[h].Units_Parameters.index.str.contains(idx),'Cost_inv2']=np.interp(y_current, cost_inv2_data.columns,row)
+
+    def get_logistic(self,E_start=1e-2,E_stop=1e-3,y_start=2024,y_stop=2050,k=1,c=2035,n=2, final_value=False,starting_value=True):
         # Create a logistic curve 
         #k must be always positive, and c must be always between y_start and y_stop
         y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
         EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
-        EMOO_list=(EMOO_list-EMOO_list[0])*(E_stop-E_start)/(EMOO_list[-1]-EMOO_list[0])+E_start # Stretching the curve
+        if starting_value is True:
+            diff_start=E_start
+        else:
+            diff_start=EMOO_list[0]
+        if final_value is True:
+            diff_stop=E_stop
+        else:
+            diff_stop=EMOO_list[-1]
+        EMOO_list=(EMOO_list-EMOO_list[0])*(diff_stop-diff_start)/(EMOO_list[-1]-EMOO_list[0])+diff_start# Stretching the curve
         return EMOO_list,y_span
     
-    def get_logistic_partial(self,E_start=0,E_stop=1,y_start=2024,y_stop=2050,k=0.1,y=2024,E=0.6,n=5):
+    def get_logistic_partial(self,E_start=0,E_stop=1,y_start=2024,y_stop=2050,k=0.1,y=2024,E=0.6,n=5,final_value=False):
         # If you don't want to start from E_start with a flat slope, because you know a measure (y,E) (The logistic curve started earlier than y_start). You can start from a partial logistic curve. 
         # Since a measure is taken (y,E), the number of parameters to select is reduced by one. This means, instead of selecting k and c, you only select k: c is deduced from the measure (y,E). 
         c=np.log((E_start-E_stop)/(E-E_stop)-1)/(-k)+y
         y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
         EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
-        EMOO_list=(EMOO_list-EMOO_list[0])*(E_stop-E)/(EMOO_list[-1]-EMOO_list[0])+E # Stretching the curve
+        if final_value is True:
+            EMOO_list=(EMOO_list-EMOO_list[0])*(E_stop-E)/(EMOO_list[-1]-EMOO_list[0])+E # Stretching the curve
         return EMOO_list,y_span
  
 
