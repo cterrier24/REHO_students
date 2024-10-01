@@ -322,3 +322,9 @@ scripts/*
 !scripts/examples/
 
 requirements.txt
+
+# Keep local data
+reho/data/infrastructure/cost_inv1_evolution.csv
+reho/data/infrastructure/cost_inv2_evolution.csv
+reho/data/infrastructure/building_units.csv
+reho/data/infrastructure/district_units.csv
