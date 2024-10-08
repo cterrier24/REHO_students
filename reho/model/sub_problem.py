@@ -170,6 +170,7 @@ class SubProblem:
             else:
                 ampl.read('pv.mod')
 
+
         # Storage Units
         ampl.cd(path_to_units_storage)
         if 'WaterTankSH' in self.infrastructure_sp.UnitTypes:
@@ -621,9 +622,16 @@ class SubProblem:
         ampl.getConstraint('disallow_exchanges_2').drop()
         ampl.getConstraint('no_ElectricalHeater_without_HP').drop()
 
+        if 'OIL_Boiler' in self.infrastructure_sp.UnitsOfType:
+            ampl.getConstraint('enforce_OIL_Boiler').drop()
+        if 'NG_Boiler' in self.infrastructure_sp.UnitsOfType:
+            ampl.getConstraint('enforce_NG_Boiler').drop()
+        if  'DHN_hex' in self.infrastructure_sp.UnitsOfType:
+            ampl.getConstraint('enforce_DHN_hex_in').drop()
         if 'PV' in self.infrastructure_sp.UnitsOfType:
             ampl.getConstraint('enforce_PV_max').drop()
         if 'HeatPump' in self.infrastructure_sp.UnitsOfType:
+            ampl.getConstraint('enforce_HeatPump').drop()
             ampl.getConstraint('enforce_DHN').drop()
             if not any("DHN" in unit for unit in self.infrastructure_sp.UnitsOfType['HeatPump']):
                 ampl.getConstraint('DHN_heat').drop()

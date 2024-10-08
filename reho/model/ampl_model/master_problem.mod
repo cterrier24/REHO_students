@@ -351,7 +351,8 @@ param EMOO_TOTEX default 1000;
 param EMOO_grid default 0;
 param EMOO_lca{k in Lca_kpi} default 1e6;
 param EMOO_PV default 0;
-param EMOO_HP default 1e3;
+param EMOO_HP_upper default 1e3;
+param EMOO_HP_lower default 0;
 param EMOO_elec_export default 0;
 
 var EMOO_slack                >= 0, <= abs(EMOO_CAPEX) * Area_tot;
@@ -359,7 +360,8 @@ var EMOO_slack_opex           >= 0, <= abs(EMOO_OPEX)*Area_tot;
 var EMOO_slack_gwp            >= 0, <= abs(EMOO_GWP)*Area_tot;
 var EMOO_slack_totex          >= 0, <= abs(EMOO_TOTEX)*Area_tot;
 var EMOO_slack_pv             >= 0;
-var EMOO_slack_hp             >= 0;
+var EMOO_slack_hp_upper       >= 0, <= abs(EMOO_TOTEX)*Area_tot;
+var EMOO_slack_hp_lower       >= 0, <= abs(EMOO_TOTEX)*Area_tot;
 var EMOO_slack_elec_export >=0;
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -434,8 +436,12 @@ lca_tot[k] <= EMOO_lca[k] * Area_tot;
 subject to EMOO_PV_constraint: # beta_pv
 PV_tot = EMOO_slack_pv + EMOO_PV * Area_tot;
 
-subject to EMOO_HP_constraint: # beta_hp
-HP_tot + EMOO_slack_hp = EMOO_HP * Area_tot;
+subject to EMOO_HP_upper_constraint: # beta_hp_upper
+HP_tot + EMOO_slack_hp_upper = EMOO_HP_upper * Area_tot;
+
+subject to EMOO_HP_lower_constraint: # beta_hp_lower
+HP_tot = EMOO_slack_hp_lower + EMOO_HP_lower * Area_tot;
+
 
 subject to EMOO_elec_export_constraint:
 sum{l in ResourceBalances, p in PeriodStandard,t in Time[p]} ( Network_demand[l,p,t] - Network_supply[l,p,t] ) / 1000  =  EMOO_slack_elec_export + EMOO_elec_export * (sum{h in House} ERA[h]);

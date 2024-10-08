@@ -517,11 +517,11 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
     df_Results["df_District"] = df_District.sort_index()
 
     # df_beta
-    emoo_keys = ["EMOO_CAPEX", "EMOO_OPEX", "EMOO_GWP", "EMOO_TOTEX", "EMOO_lca", "EMOO_PV", "EMOO_HP"]
+    emoo_keys = ["EMOO_CAPEX", "EMOO_OPEX", "EMOO_GWP", "EMOO_TOTEX", "EMOO_lca", "EMOO_PV", "EMOO_HP_upper","EMOO_HP_lower"]
     list_keys = [i for i in scenario["EMOO"].keys() if i in emoo_keys]
     if not list_keys:
-        df = pd.DataFrame([0.0] * 18)
-        df.index = ['CAPEX', 'OPEX', 'GWP', 'TOTEX', 'PV', 'HP'] + list(get_ampl_data(ampl, 'Lca_kpi').index)
+        df = pd.DataFrame([0.0] * 19)
+        df.index = ['CAPEX', 'OPEX', 'GWP', 'TOTEX', 'PV', 'HP_upper','HP_lower'] + list(get_ampl_data(ampl, 'Lca_kpi').index)
         df.columns = ["beta"]
         df_Results["df_beta"] = df
     else:
@@ -535,9 +535,11 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
         df4.columns = ['TOTEX']
         df6 = get_ampl_dual_values_in_pandas(ampl,'EMOO_PV_constraint',False)
         df6.columns = ['PV']
-        df7 = get_ampl_dual_values_in_pandas(ampl,'EMOO_HP_constraint',False)
-        df7.columns = ['HP']
-        df_beta = pd.concat([df1, df2, df3, df4, df6, df7], axis=1).stack().droplevel(0)
+        df7 = get_ampl_dual_values_in_pandas(ampl,'EMOO_HP_upper_constraint',False)
+        df7.columns = ['HP_upper']
+        df8 = get_ampl_dual_values_in_pandas(ampl,'EMOO_HP_lower_constraint',False)
+        df8.columns = ['HP_lower']
+        df_beta = pd.concat([df1, df2, df3, df4, df6, df7, df8], axis=1).stack().droplevel(0)
         df_beta = pd.DataFrame(df_beta, columns=['beta'])
         df5 = get_ampl_dual_values_in_pandas(ampl, 'EMOO_lca_constraint', False)
         df5.columns = ['beta']
@@ -593,7 +595,9 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
     df3 = tau[0] * get_ampl_data(ampl, 'Costs_Unit_inv')
     df4 = get_ampl_data(ampl, 'GWP_Unit_constr')  # per year! For total - multiply with lifetime
     df5 = get_ampl_data(ampl, 'lifetime')
-    df_Unit = pd.concat([df1, df2, df3, df4, df5], axis=1)
+    df7 = get_ampl_data(ampl, 'Cost_inv1', multi_index=False)
+    df8 = get_ampl_data(ampl, 'Cost_inv2', multi_index=False)
+    df_Unit = pd.concat([df1, df2, df3, df4, df5, df7, df8], axis=1)
     if read_DHN:
         df_Unit.at["DHN_pipes_district", ("Units_Use", "Units_Mult", "Costs_Unit_inv")] = [1, 1, get_ampl_data(ampl, 'DHN_inv')["DHN_inv"][0]]
     df_Results["df_Unit"] = df_Unit.sort_index()

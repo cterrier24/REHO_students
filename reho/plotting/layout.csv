@@ -33,7 +33,7 @@ HeatPump,Heat pump,HP,Pompe à chaleur,#FEA993,salmon,#CD1076,pink
 HeatPump_Air,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon,#CD1076,pink
 HeatPump_DHN,Heat pump DHN,HP DHN,"Pompe à chaleur, DHN",#FEA993,salmon,#CD1076,pink
 HeatPump_Geothermal,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon,#CD1076,pink
-HeatPump_Geothermal_district,HP geothermal (district),District HP geo,"PAC géothermie (district)",#FEA993,salmon,#CD1076,pink
+HeatPump_Geothermal_district,HP geothermal (district),District HP geo,PAC géothermie (district),#FEA993,salmon,#CD1076,pink
 HeatPump_Lake,Heat pump lake,HP lake,"Pompe à chaleur, lac",#FEA993,salmon,#CD1076,pink
 ,,,,,,,
 Heat,Heat from DHN,Heat DHN,Chaleur (CAD),#FF8C00,orange,#FF3030,red
@@ -77,3 +77,6 @@ ElectricBike_district,Electric bikes,EBike,Vélos électriques,#00FF7F,springgre
 Total_EV_fleet,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise,#7AC5CD,blue
 EV_district,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise,#7AC5CD,blue
 EVcharging_district,EV charging station,EVchrg,Stations de recharge,#008080,teal,#008080,teal
+,,,,,,,
+PEM_electrolyzer_district,PEM electrolyzer district,District PEM ETZ,Electrolyseur PEM (district),#008080,teal,#008080,teal
+Hydrogen,Hydrogen,H2,H2,#32CD32,limegreen,#32CD32,limegreen

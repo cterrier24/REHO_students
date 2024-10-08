@@ -417,9 +417,15 @@ class MasterProblem:
                 ampl_MP.read('heatpump_district.mod')
             if "NG_Cogeneration_district" in self.infrastructure.UnitsOfDistrict:
                 ampl_MP.read('ng_cogeneration_district.mod')
+            if "PEM_electrolyzer_district" in self.infrastructure.UnitsOfDistrict: # Test electrolyzer
+                ampl_MP.read('electrolyzer_district.mod')
             if "Battery_district" in self.infrastructure.UnitsOfDistrict:
                 ampl_MP.cd(path_to_units_storage)
                 ampl_MP.read('battery.mod')
+            if "H2_storage_district" in self.infrastructure.UnitsOfDistrict:
+                ampl_MP.cd(path_to_units_storage)
+                ampl_MP.read('h2_storage_simplified.mod')
+
 
         if read_DHN:
             ampl_MP.cd(path_to_district_units)
@@ -1058,7 +1064,7 @@ class MasterProblem:
     def remove_emoo_constraints(scenario):
 
         EMOOs = list(scenario['EMOO'].keys())
-        keys_to_remove = ['EMOO_CAPEX', 'EMOO_OPEX', 'EMOO_GWP', 'EMOO_TOTEX', 'EMOO_lca', "EMOO_elec_export", "EMOO_EV", "EMOO_PV", "EMOO_HP"]
+        keys_to_remove = ['EMOO_CAPEX', 'EMOO_OPEX', 'EMOO_GWP', 'EMOO_TOTEX', 'EMOO_lca', "EMOO_elec_export", "EMOO_EV", "EMOO_PV", "EMOO_HP_upper",'EMOO_HP_lower']
         if 'EMOO' in scenario:
             for key in list(set(EMOOs).intersection(keys_to_remove)):
                 scenario['EMOO'].pop(key, None)

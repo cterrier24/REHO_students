@@ -382,6 +382,26 @@ def translate_buildings_to_REHO(df_buildings):
         'temperature_cooling_supply_C': 'Tc_supply_0',
         'temperature_cooling_return_C': 'Tc_return_0',
 
+        # Installed units
+        'P_PV': 'P_PV',
+        'NB_HP': 'NB_HP',
+        'P_HP': 'P_HP',
+        'NB_EVSE': 'NB_EVSE',
+        'P_EVSE':'P_EVSE',
+        'P_TRF':'P_TRF',
+        'ELEC_cons_kWh':'ELEC_cons_kWh',
+        'is_slave_EGID':'is_slave_EGID',
+        'GAS_cons_kWh':'GAS_cons_kWh',
+        'GAS_pow_kW':'GAS_pow_kW',
+        'GAS_connected':'GAS_connected',
+        'DHN_cons_kWh':'DHN_cons_kWh',
+        'DHN_pow_kW':'DHN_pow_kW',
+        'DHN_connected':'DHN_connected',
+        'Oil_boiler':'OIL_Boiler',
+
+
+
+
         #############################
         # Data not strictly necessary
         #############################
@@ -613,6 +633,7 @@ def return_shadows_district(buildings, facades, local_data):
 
     df_shadows["id_building"] = df_shadows["id_building"].astype(str)
     df_shadows.to_csv('data/shadows.csv')
+    
 
     return df_shadows
 

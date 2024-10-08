@@ -10,6 +10,8 @@
 #-References : 
 # [1]	Hoval Belaria IR9
 
+param HeatPump_install{h in House} default 0;
+
 #-T_INDEX
 param T_source{u in UnitsOfType['HeatPump'], p in Period,t in Time[p]};
 
@@ -143,3 +145,6 @@ subject to enforce_DHN{h in House, u in {'DHN_hex_in_'&h}, v in {'HeatPump_DHN_'
 #--Only one type of heat pump per house
 subject to max_one_HeatPump_per_house{h in House}:
 sum{u in UnitsOfType['HeatPump'] inter UnitsOfHouse[h]} Units_Use[u] <= 1;
+
+subject to enforce_HeatPump{h in House}:
+sum{u in UnitsOfType['HeatPump'] inter UnitsOfHouse[h]: u not in {'HeatPump_DHN_'&h}} Units_Use[u] >= HeatPump_install[h];

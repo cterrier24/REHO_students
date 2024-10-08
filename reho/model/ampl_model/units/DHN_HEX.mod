@@ -16,6 +16,11 @@ param T_m_out{h in House}  := (Tc_supply_0[h] + Tc_return_0[h])/2 - (T_DHN_suppl
 param T_m_in{h in House}  :=  (T_DHN_supply_cst + T_DHN_return_cst)/2 - (Th_supply_0[h] + Th_return_0[h])/2;
 
 param U_hex default 1; # kW / m2K
+param DHN_hex_in_install{h in House} default 0;
+
+
+subject to enforce_DHN_hex_in{h in House,u in {'DHN_hex_in_'&h}}:
+Units_Use[u] = DHN_hex_in_install[h];
 
 # direct heating
 subject to HEX_heating1{h in House,u in {'DHN_hex_in_'&h},p in Period,t in Time[p]}:

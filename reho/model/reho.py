@@ -418,8 +418,8 @@ class REHO(MasterProblem):
         self.infrastructure = infrastructure.Infrastructure(buildings,  units, self.infrastructure.grids)
 
 
-    def pathway(self,EMOO_list=[0,0,0],EMOO_list2= None,EMOO_type="GWP",EMOO_type2=None,existing_init=None,EV=[],EV_battery=[],y_span=None,renovation_rate=0):
-        # This function computes a myopic pathway, constrained by the EMOO_lists of type EMOO_types on a given set of period y_span
+    def pathway(self,pathway_data={"y_span":None,'EMOO':{"GWP":[[0,0,0]]}},existing_init=None,EV=[],EV_battery=[],y_span=None,renovation_rate=0):
+        # This function computes a myopic pathway, constrained by the list of EMOO constrains on a given set of period y_span
 
         # Get the scenario name
         Scn_ID = self.scenario["name"]
@@ -430,8 +430,13 @@ class REHO(MasterProblem):
         # cost_inv2_data = cost_inv2_data.set_index('Unit')
 
         # If the set of time period is not given
-        if y_span is None:
-            y_span=list(np.linspace(2025,2050,len(EMOO_list)))
+        if 'y_span' not in pathway_data.keys():
+            pathway_data['y_span']=None
+
+        if pathway_data['y_span'] is None:
+            y_span=list(np.linspace(2025,2050,len(pathway_data['EMOO'][list(pathway_data['EMOO'].keys())[0]])))
+        else:
+            y_span=pathway_data['y_span']
 
         # First: Update the technology costs:
         self.update_cost_building_units(y_current=y_span[0])
@@ -456,14 +461,12 @@ class REHO(MasterProblem):
             if EV_battery != []: # If a list of number of EV is sent, it will specify them for each iteration. This is a special case since used for free batteries from EV
                 self.parameters["Units_Ext_district"] = np.array(
                     [EV_battery[1] if "Battery_district" in u else 0 for u in self.infrastructure.UnitsOfDistrict])
-            if 'EMOO' not in self.scenario.keys():
-                self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[0]}
-                if EMOO_list2 is not None:
-                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
-            else:
-                self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[0]
-                if EMOO_list2 is not None:
-                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
+            for EMOO_type in pathway_data['EMOO']:
+                EMOO_list=pathway_data['EMOO'][EMOO_type] 
+                if 'EMOO' not in self.scenario.keys():
+                    self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[0]}
+                else:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[0]
 
             # Optimize the system
             self.single_optimization(Pareto_ID=0)
@@ -492,14 +495,12 @@ class REHO(MasterProblem):
             self.single_optimization(Pareto_ID=-1)
 
             # Apply the constraints
-            if 'EMOO' not in self.scenario.keys():
-                self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[0]}
-                if EMOO_list2 is not None:
-                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
-            else:
-                self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[0]
-                if EMOO_list2 is not None:
-                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[0]
+            for EMOO_type in pathway_data['EMOO']:
+                EMOO_list=pathway_data['EMOO'][EMOO_type] 
+                if 'EMOO' not in self.scenario.keys():
+                    self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[0]}
+                else:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[0]
 
             # Insert the results of the artifial optimization
             if EV != []:
@@ -539,19 +540,17 @@ class REHO(MasterProblem):
         #### Main loop: iteration over all time periods ####
         ####################################################
     
-        for i in range(1,len(EMOO_list)):
+        for i in range(1,len(y_span)):
             # Update the unit costs:
             self.update_cost_building_units(y_current=y_span[i])
 
             # Update the constraints
-            if 'EMOO' not in self.scenario.keys():
-                self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[i]}
-                if EMOO_list2 is not None:
-                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[i]
-            else:
-                self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[i]
-                if EMOO_list2 is not None:
-                    self.scenario['EMOO']['EMOO_'+EMOO_type2]=EMOO_list2[i]
+            for EMOO_type in pathway_data['EMOO']:
+                EMOO_list=pathway_data['EMOO'][EMOO_type] 
+                if 'EMOO' not in self.scenario.keys():
+                    self.scenario['EMOO'] ={'EMOO_'+EMOO_type:EMOO_list[i]}
+                else:
+                    self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[i]
 
             # Update the EVs
             if EV != []:
