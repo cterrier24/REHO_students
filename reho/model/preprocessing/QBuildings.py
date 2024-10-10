@@ -398,6 +398,7 @@ def translate_buildings_to_REHO(df_buildings):
         'DHN_pow_kW':'DHN_pow_kW',
         'DHN_connected':'DHN_connected',
         'Oil_boiler':'OIL_Boiler',
+        'NOM_COM':'NAME_MUNICIPALITY',
 
 
 
