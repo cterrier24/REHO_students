@@ -162,7 +162,7 @@ class SubProblem:
         if 'NG_Cogeneration' in self.infrastructure_sp.UnitTypes:
             ampl.read('ng_cogeneration.mod')
         if 'DHN_hex' in self.infrastructure_sp.UnitTypes:
-            ampl.read('DHN_hex.mod')
+            ampl.read('DHN_HEX.mod')
             ampl.read('DHN_pipes.mod')
         if 'PV' in self.infrastructure_sp.UnitTypes:
             if self.method_sp['use_pv_orientation']:
