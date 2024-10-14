@@ -1229,18 +1229,30 @@ class MasterProblem:
         """
         ID = np.where(h == self.infrastructure.House)[0][0]
         buildings_data_SP = {h: self.buildings_data[h]}
-
         for key in self.parameters:
             if key not in self.lists_MP["list_parameters_MP"]:
                 if isinstance(self.parameters[key], (int, float)):
                     parameters_SP[key] = self.parameters[key]
-                elif self.parameters[key].shape[0] >= self.DW_params['timesteps']:  # if demands profiles are set for more than 1 building
-                    if len(self.infrastructure.houses) < self.DW_params['timesteps']:
-                        nb_buildings = round(self.parameters[key].shape[0] / self.DW_params['timesteps'])
-                        profile_building_x = self.parameters[key].reshape(nb_buildings, self.DW_params['timesteps'])
-                        parameters_SP[key] = profile_building_x[ID]
                 else:
-                    parameters_SP[key] = self.parameters[key][ID]
+                    try:
+                        profile_building_x = self.parameters[key].reshape(len(self.buildings_data), self.DW_params['timesteps']) # for time series
+                        parameters_SP[key] = profile_building_x[ID]
+                    except:
+                        parameters_SP[key] = self.parameters[key][ID]
+
+        # for key in self.parameters:
+        #     if key not in self.lists_MP["list_parameters_MP"]:
+        #         if isinstance(self.parameters[key], (int, float)):
+        #             parameters_SP[key] = self.parameters[key]
+        #         elif self.parameters[key].shape[0] >= self.DW_params['timesteps']:  # if demands profiles are set for more than 1 building
+        #             if len(self.infrastructure.houses) < self.DW_params['timesteps']:
+        #                 nb_buildings = round(self.parameters[key].shape[0] / self.DW_params['timesteps'])
+        #                 profile_building_x = self.parameters[key].reshape(nb_buildings, self.DW_params['timesteps'])
+        #                 parameters_SP[key] = profile_building_x[ID]
+        #         else:
+        #             parameters_SP[key] = self.parameters[key][ID]
+
+        
         return buildings_data_SP, parameters_SP
 
     def build_infrastructure_SP(self):

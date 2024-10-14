@@ -21,9 +21,10 @@ def get_weather_data(qbuildings_data, export_filename=None):
     lat, long = Transformer.from_crs("EPSG:2056", "EPSG:4326").transform(qbuildings_data['buildings_data']['Building1']['x'],
                                                                          qbuildings_data['buildings_data']['Building1']['y'])
 
-    pvgis_data = pvlib.iotools.get_pvgis_tmy(lat, long, outputformat='csv', startyear=2005, endyear=2016)
+    pvgis_data = pvlib.iotools.get_pvgis_tmy(lat, long, outputformat='csv', startyear=2023, endyear=2023, components=False)
     coordinates = pvgis_data[2]
     weather_data = pvgis_data[0]
+    weather_data['ghi'] = weather_data['poa_global']
 
     # Rename columns
     weather_data = weather_data.rename(columns={'temp_air': 'Text', 'ghi': 'Irr'})
