@@ -3,7 +3,7 @@ from reho.plotting import plotting
 
 if __name__ == '__main__':
 
-    nb_buildings = 80
+    nb_buildings = 2
 
     buildings_filename = os.path.join(os.getcwd(),'data_old','buildings_fribourg.csv')#str(Path(__file__).parent / 'data_old' / 'buildings.csv')
 
@@ -11,8 +11,8 @@ if __name__ == '__main__':
     # Load your buildings from a csv file instead of reading the database
     reader = QBuildingsReader()
     qbuildings_data = reader.read_csv(buildings_filename=buildings_filename,nb_buildings=nb_buildings)
-    qbuildings_data['buildings_data'] = {'Building64':qbuildings_data['buildings_data']['Building64']}
-    qbuildings_data['buildings_data']['Building64']['ERA']=154
+    #qbuildings_data['buildings_data'] = {'Building64':qbuildings_data['buildings_data']['Building64']}
+    #qbuildings_data['buildings_data']['Building64']['ERA']=154
     era = sum([qbuildings_data['buildings_data'][i]['ERA'] for i in qbuildings_data['buildings_data'].keys()])
     # Select clustering options for weather data
     cluster = {'Location': 'Fribourg', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
