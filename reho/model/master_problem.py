@@ -329,7 +329,11 @@ class MasterProblem:
         if exitcode != 0:
             # It might be that the solution is optimal with unscaled infeasibilities. So we check if we really found a solution (via its cost value)
             if exitcode != 'solved?' or df_Results["df_Performance"]['Costs_op'][0] + df_Results["df_Performance"]['Costs_inv'][0] == 0:
+                print("########################################")
+                print(h)
+                print("########################################")
                 raise Exception('Sub problem did not converge')
+                
 
         return df_Results, attr
 
