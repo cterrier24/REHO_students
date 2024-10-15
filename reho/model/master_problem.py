@@ -332,7 +332,7 @@ class MasterProblem:
                 print("########################################")
                 print(h)
                 print("########################################")
-                raise Exception('Sub problem did not converge')
+                raise Exception('Sub problem' + h + 'did not converge')
                 
 
         return df_Results, attr
