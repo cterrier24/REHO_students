@@ -471,7 +471,7 @@ class MasterProblem:
         MP_parameters['Costs_ft_SPs'] = pd.DataFrame(np.round(df_Performance.Costs_ft, 6)).set_axis(['Costs_ft_SPs'], axis=1)
         MP_parameters['GWP_house_constr_SPs'] = pd.DataFrame(df_Performance.GWP_constr).set_axis(['GWP_house_constr_SPs'], axis=1)
         MP_parameters['PV_house_installed'] =df_Unit_PV.Units_Mult # for PV constraint
-        MP_parameters['HP_house_installed'] =df_Unit_HP.Units_Mult # for PV constraint
+        MP_parameters['HP_house_installed'] =df_Unit_HP.Units_Mult # for HP constraint
 
         if self.method['save_lca']:
             df_lca_Units = self.return_combined_SP_results(self.results_SP, 'df_lca_Units')
@@ -1068,7 +1068,7 @@ class MasterProblem:
     def remove_emoo_constraints(scenario):
 
         EMOOs = list(scenario['EMOO'].keys())
-        keys_to_remove = ['EMOO_CAPEX', 'EMOO_OPEX', 'EMOO_GWP', 'EMOO_TOTEX', 'EMOO_lca', "EMOO_elec_export", "EMOO_EV", "EMOO_PV", "EMOO_HP_upper",'EMOO_HP_lower']
+        keys_to_remove = ['EMOO_CAPEX', 'EMOO_OPEX', 'EMOO_GWP', 'EMOO_TOTEX', 'EMOO_lca', "EMOO_elec_export", "EMOO_EV","EMOO_PV_upper","EMOO_PV_lower","EMOO_HP_upper",'EMOO_HP_lower']
         if 'EMOO' in scenario:
             for key in list(set(EMOOs).intersection(keys_to_remove)):
                 scenario['EMOO'].pop(key, None)

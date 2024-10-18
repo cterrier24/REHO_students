@@ -6,7 +6,7 @@ if __name__ == '__main__':
     # Set building parameters
     reader = QBuildingsReader()
     reader.establish_connection('Geneva')
-    qbuildings_data = reader.read_db(234, nb_buildings=2)
+    qbuildings_data = reader.read_csv(os.path.join(os.getcwd(),'data_old','buildings_fribourg.csv'),nb_buildings=2)
 
     # Select clustering options for weather data
     cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     DW_params = {'max_iter': 2}
 
     # Run optimization
-    reho = REHO(qbuildings_data=qbuildings_data, units=units, grids=grids, cluster=cluster, scenario=scenario, method=method, DW_params=DW_params, solver="gurobi")
+    reho = REHO(qbuildings_data=qbuildings_data, units=units, grids=grids, cluster=cluster, scenario=scenario, method=method, DW_params=DW_params, solver="HiGHS")
     reho.generate_pareto_curve()
 
     # Save results

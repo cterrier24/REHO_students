@@ -351,32 +351,32 @@ def translate_buildings_to_REHO(df_buildings):
         #################################################
 
         # Data for EUD profiles
-        'id_building': 'id_building',
-        'egid': 'egid',
-        'id_class': 'id_class',
-        'class': 'class',
-        'ratio': 'ratio',
-        'status': 'status',
-        'period': 'period',
+        'id_building': 'id_building', #
+        'egid': 'egid', #
+        'id_class': 'id_class', #
+        'class': 'class', #
+        'ratio': 'ratio', #
+        'status': 'status', #
+        'period': 'period', #
         'capita_cap': 'n_p',
 
         # Area
-        'area_era_m2': 'ERA',
-        'area_roof_solar_m2': 'SolarRoofArea',
-        'area_facade_m2': 'area_facade_m2',
+        'area_era_m2': 'ERA', #
+        'area_roof_solar_m2': 'SolarRoofArea', #
+        'area_facade_m2': 'area_facade_m2', #
         'height_m': 'height_m',  # only for use_facades
-        'count_floor': 'count_floor',
+        'count_floor': 'count_floor', 
 
-        # Heating source
+        # Heating source 
         'source_heating': 'source_heating',
         'source_hotwater': 'source_hotwater',
 
         # Thermal envelope
-        'thermal_transmittance_signature_kW_m2_K': 'U_h',
-        'thermal_specific_capacity_Wh_m2_K': 'HeatCapacity',
+        'thermal_transmittance_signature_kW_m2_K': 'U_h', #
+        'thermal_specific_capacity_Wh_m2_K': 'HeatCapacity', #
 
         # Temperature requirements
-        'temperature_interior_C': 'T_comfort_min_0',
+        'temperature_interior_C': 'T_comfort_min_0', 
         'temperature_heating_supply_C': 'Th_supply_0',
         'temperature_heating_return_C': 'Th_return_0',
         'temperature_cooling_supply_C': 'Tc_supply_0',

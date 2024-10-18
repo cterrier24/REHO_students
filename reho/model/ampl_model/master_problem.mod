@@ -350,7 +350,8 @@ param EMOO_GWP default 1000;
 param EMOO_TOTEX default 1000;
 param EMOO_grid default 0;
 param EMOO_lca{k in Lca_kpi} default 1e6;
-param EMOO_PV default 0;
+param EMOO_PV_upper default 1e3;
+param EMOO_PV_lower default 0;
 param EMOO_HP_upper default 1e3;
 param EMOO_HP_lower default 0;
 param EMOO_elec_export default 0;
@@ -359,9 +360,10 @@ var EMOO_slack                >= 0, <= abs(EMOO_CAPEX) * Area_tot;
 var EMOO_slack_opex           >= 0, <= abs(EMOO_OPEX)*Area_tot;
 var EMOO_slack_gwp            >= 0, <= abs(EMOO_GWP)*Area_tot;
 var EMOO_slack_totex          >= 0, <= abs(EMOO_TOTEX)*Area_tot;
-var EMOO_slack_pv             >= 0;
-var EMOO_slack_hp_upper       >= 0, <= abs(EMOO_TOTEX)*Area_tot;
-var EMOO_slack_hp_lower       >= 0, <= abs(EMOO_TOTEX)*Area_tot;
+var EMOO_slack_pv_upper       >= 0, <= abs(EMOO_PV_upper)*Area_tot;
+var EMOO_slack_pv_lower       >= 0, <= abs(EMOO_PV_lower)*Area_tot;
+var EMOO_slack_hp_upper       >= 0, <= abs(EMOO_HP_upper)*Area_tot;
+var EMOO_slack_hp_lower       >= 0, <= abs(EMOO_HP_lower)*Area_tot;
 var EMOO_slack_elec_export >=0;
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -433,8 +435,11 @@ Costs_tot + EMOO_slack_totex = EMOO_TOTEX * Area_tot;
 subject to EMOO_lca_constraint{k in Lca_kpi} :
 lca_tot[k] <= EMOO_lca[k] * Area_tot;
 
-subject to EMOO_PV_constraint: # beta_pv
-PV_tot = EMOO_slack_pv + EMOO_PV * Area_tot;
+subject to EMOO_PV_upper_constraint: # beta_pv_upper
+PV_tot + EMOO_slack_pv_upper = EMOO_PV_upper * Area_tot;
+
+subject to EMOO_PV_lower_constraint: # beta_pv_lower
+PV_tot = EMOO_slack_pv_lower + EMOO_PV_lower * Area_tot;
 
 subject to EMOO_HP_upper_constraint: # beta_hp_upper
 HP_tot + EMOO_slack_hp_upper = EMOO_HP_upper * Area_tot;
