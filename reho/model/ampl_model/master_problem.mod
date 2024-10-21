@@ -163,9 +163,9 @@ HP_tot = sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Mult[u
 #--------------------------------------------------------------------------------------------------------------------#
 ######################################################################################################################
 
-param Costs_inv_rep_SPs{f in FeasibleSolutions, h in House} >= 0;
-param Costs_ft_SPs{f in FeasibleSolutions, h in House} >= 0;
-param GWP_house_constr_SPs{f in FeasibleSolutions, h in House} >= 0;
+param Costs_inv_rep_SPs{f in FeasibleSolutions, h in House} >= -1e-4;
+param Costs_ft_SPs{f in FeasibleSolutions, h in House} >= -1e-4;
+param GWP_house_constr_SPs{f in FeasibleSolutions, h in House} >= -1e-4;
 
 #--------------------------------------------------------------------------------------------------------------------#
 #-OPERATIONAL EXPENSES
