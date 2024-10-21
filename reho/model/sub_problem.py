@@ -632,6 +632,7 @@ class SubProblem:
             ampl.getConstraint('enforce_PV_max').drop()
         if 'HeatPump' in self.infrastructure_sp.UnitsOfType:
             ampl.getConstraint('enforce_HeatPump').drop()
+            ampl.getConstraint('enforce_HeatPump_max').drop()
             ampl.getConstraint('enforce_DHN').drop()
             if not any("DHN" in unit for unit in self.infrastructure_sp.UnitsOfType['HeatPump']):
                 ampl.getConstraint('DHN_heat').drop()

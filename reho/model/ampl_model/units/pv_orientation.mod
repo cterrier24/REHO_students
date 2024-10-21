@@ -93,7 +93,7 @@ param PVA_temperature_ref{u in UnitsOfType['PV']} default 298;		#K 		[1]
 param PVA_efficiency_ref{u in UnitsOfType['PV']} default 0.2;		#- 		[1]
 param PVA_efficiency_var{u in UnitsOfType['PV']} default 0.0012;	#- 		[1]
 
-param HouseSurfaceArea{h in House, s in SurfaceOfHouse[h]} default ERA[h]*2;
+param HouseSurfaceArea{h in House, s in SurfaceOfHouse[h]} default ERA[h]/3;
 
 																									
 #param PVA_temperature{u in UnitsOfType['PV'],p in Period,t in Time[p]} :=

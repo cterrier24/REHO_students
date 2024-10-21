@@ -47,8 +47,7 @@ set Obj_fct := Lca_kpi union {'TOTEX', 'OPEX', 'CAPEX', 'GWP','PV_upper','PV_low
 param beta_duals{o in Obj_fct} default 0;
 
 minimize SP_obj_fct:
-beta_duals['OPEX'] * (Costs_op + Costs_grid_connection) + beta_duals['CAPEX'] * tau*(Costs_inv + Costs_rep) + beta_duals['GWP'] * (GWP_op  + GWP_constr) + beta_duals['PV_upper'] * sum{u in UnitsOfType['PV']}(Units_Mult[u]) + beta_duals['PV_lower']*sum{u in UnitsOfType['PV']}(Units_Mult[u]) + beta_duals['HP_upper']*sum{u in UnitsOfType['HeatPump']}(Units_Mult[u]) + beta_duals['HP_lower']*sum{u in UnitsOfType['HeatPump']}(Units_Mult[u]) +
-sum{o in Obj_fct inter Lca_kpi} beta_duals[o] * lca_tot[o] + penalties;
+beta_duals['OPEX'] * (Costs_op + Costs_grid_connection) + beta_duals['CAPEX'] * tau*(Costs_inv + Costs_rep) + beta_duals['GWP'] * (GWP_op  + GWP_constr) + sum{o in Obj_fct inter Lca_kpi} beta_duals[o] * lca_tot[o] + penalties+ beta_duals['PV_upper'] * sum{u in UnitsOfType['PV']}(Units_Mult[u]) + beta_duals['PV_lower']*sum{u in UnitsOfType['PV']}(Units_Mult[u]) + beta_duals['HP_upper']*sum{u in UnitsOfType['HeatPump']}(Units_Mult[u]) + beta_duals['HP_lower']*sum{u in UnitsOfType['HeatPump']}(Units_Mult[u]);
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#

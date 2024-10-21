@@ -148,3 +148,6 @@ sum{u in UnitsOfType['HeatPump'] inter UnitsOfHouse[h]} Units_Use[u] <= 1;
 
 subject to enforce_HeatPump{h in House}:
 sum{u in UnitsOfType['HeatPump'] inter UnitsOfHouse[h]: u not in {'HeatPump_DHN_'&h}} Units_Use[u] >= HeatPump_install[h];
+
+subject to enforce_HeatPump_max{h in House}:
+sum{u in UnitsOfType['HeatPump'] inter UnitsOfHouse[h]: u not in {'HeatPump_DHN_'&h}} Units_Use[u] >= 1;
