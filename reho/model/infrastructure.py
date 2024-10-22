@@ -80,7 +80,8 @@ class Infrastructure:
                 if 'ReinforcementLineOfLayer' in grids[l].keys():
                     self.ReinforcementLineOfLayer[l] = grids[l]['ReinforcementLineOfLayer']
                 else:
-                    self.ReinforcementLineOfLayer[l] = np.array([1e8])
+                    self.ReinforcementLineOfLayer[l] = {h:np.array([1e8]) for h in self.House}
+
 
         self.StreamsOfBuilding = {}
         self.StreamsOfUnit = {}

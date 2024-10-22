@@ -167,15 +167,15 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
     def set_df_grid_SP(ampl):
         df1 = get_ampl_data(ampl, 'LineCapacity', multi_index=True)
         df2 = get_ampl_data(ampl, 'Use_LineCapacity', multi_index=True)
-        df3 = get_ampl_data(ampl, 'CostLine_inv1')
-        df4 = get_ampl_data(ampl, 'CostLine_inv2')
+        df3 = get_ampl_data(ampl, 'CostLine_inv1',multi_index=True)
+        df4 = get_ampl_data(ampl, 'CostLine_inv2',multi_index=True)
         df5 = get_ampl_data(ampl, 'GWP_Line1')
         df6 = get_ampl_data(ampl, 'GWP_Line2')
         df7 = get_ampl_data(ampl, 'Line_Ext', multi_index=True)
         df8 = get_ampl_data(ampl, 'Line_Length', multi_index=True)
 
-        df3.index.names = ['Layer']
-        df4.index.names = ['Layer']
+        df3.index.names = ['Hub','Layer']
+        df4.index.names = ['Hub','Layer']
         df5.index.names = ['Layer']
         df6.index.names = ['Layer']
         df7.index.names = ['Hub', 'Layer']

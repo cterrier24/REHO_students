@@ -254,9 +254,17 @@ class SubProblem:
         for s in self.infrastructure_sp.Set:
             if isinstance(self.infrastructure_sp.Set[s], np.ndarray):
                 ampl.getSet(str(s)).setValues(self.infrastructure_sp.Set[s])
-            elif isinstance(self.infrastructure_sp.Set[s], dict):
+            elif isinstance(self.infrastructure_sp.Set[s], dict) and s!='ReinforcementLineOfLayer':
                 for i, instance in ampl.getSet(str(s)):
                     instance.setValues(self.infrastructure_sp.Set[s][i])
+            elif s=='ReinforcementLineOfLayer':
+                reinforcement_set = {}
+                for layer, res_dict in self.infrastructure_sp.Set[s].items():
+                    for house, values in res_dict.items():
+                        if house in self.infrastructure_sp.houses.keys():
+                            for value in values:
+                                reinforcement_set[layer,house]=values
+                ampl.getSet(str(s)).setValues(reinforcement_set)
             else:
                 raise ValueError('Type Error setting AMPLPY Set', s)
 
@@ -523,12 +531,20 @@ class SubProblem:
         for s in self.set_indexed_sp:
             if isinstance(self.set_indexed_sp[s], np.ndarray):
                 ampl.getSet(str(s)).setValues(self.set_indexed_sp[s])
-            elif isinstance(self.set_indexed_sp[s], dict):
+            elif isinstance(self.set_indexed_sp[s], dict) and s!='ReinforcementLineOfLayer':
                 for i, instance in ampl.getSet(str(s)):
                     try:
                         instance.setValues(self.set_indexed_sp[s][i])
                     except ValueError:
                         instance.setValues([self.set_indexed_sp[s][i]])
+            elif s=='ReinforcementLineOfLayer':
+                reinforcement_set = {}
+                for layer, res_dict in self.set_indexed_sp[s].items():
+                    for house, values in res_dict.items():
+                        if house in self.infrastructure_sp.houses.keys():
+                            for value in values:
+                                reinforcement_set[layer,house]=values
+                ampl.getSet(str(s)).setValues(reinforcement_set)
             else:
                 raise ValueError('Type Error setting AMPLPY Set', s)
 

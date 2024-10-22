@@ -216,11 +216,11 @@ param Transformer_Ext{l in ResourceBalances} default 1e8;
 param Transformer_Lifetime{l in ResourceBalances} default 20;
 
 # Lines additional capacities
-set ReinforcementLineOfLayer{ResourceBalances} default {};
-var LineCapacity{l in ResourceBalances, hl in HousesOfLayer[l]} in ReinforcementLineOfLayer[l];
+set ReinforcementLineOfLayer{l in ResourceBalances,h in House} default {};
+var LineCapacity{l in ResourceBalances, hl in HousesOfLayer[l]} in ReinforcementLineOfLayer[l,hl];
 var Use_LineCapacity{l in ResourceBalances, hl in HousesOfLayer[l]} binary;
-param CostLine_inv1{l in ResourceBalances} default 20;
-param CostLine_inv2{l in ResourceBalances} default 70; # [CHF/kW/m]
+param CostLine_inv1{h in House,l in ResourceBalances} default 20;
+param CostLine_inv2{h in House,l in ResourceBalances} default 70; # [CHF/kW/m]
 param Line_Length{h in House,l in ResourceBalances} default 10;
 param GWP_Line1{l in ResourceBalances} default 0;
 param GWP_Line2{l in ResourceBalances} default 0;
