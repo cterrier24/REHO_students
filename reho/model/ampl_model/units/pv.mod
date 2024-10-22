@@ -9,6 +9,8 @@
 # 	2. curtailment capabilities
 #-References : 
 # [1]	A. Ashouri et al., 2014
+param PV_install_Units_Mult{h in House} default 0;
+param PV_install{h in House} default 0;
 
 param PVA_module_size{u in UnitsOfType['PV']} default 1.6;			#m2
 param PVA_inverter_eff{u in UnitsOfType['PV']} default 0.97;
@@ -42,3 +44,10 @@ sum{ui in UnitsOfType['ThermalSolar'] inter UnitsOfHouse[h]}(Units_Mult[ui]) + s
 
 subject to enforce_PV_max{h in House, u in UnitsOfType['PV']}:
 sum{ui in UnitsOfType['ThermalSolar'] inter UnitsOfHouse[h]}(Units_Mult[ui]) + sum{uj in UnitsOfType['PV'] inter UnitsOfHouse[h]}(Units_Mult[uj]/PVA_efficiency_ref[uj]) = ((SolarRoofArea[h]) div PVA_module_size[u])*PVA_module_size[u];
+
+subject to enforce_PV{h in House}:
+sum{uj in UnitsOfType['PV'] inter UnitsOfHouse[h]}(Units_Use[uj]) = PV_install[h];
+
+subject to enforce_PV_Units_Mult{h in House}:
+sum{uj in UnitsOfType['PV'] inter UnitsOfHouse[h]}(Units_Mult[uj]) = PV_install_Units_Mult[h];
+
