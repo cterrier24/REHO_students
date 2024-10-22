@@ -264,7 +264,9 @@ class SubProblem:
                         if house in self.infrastructure_sp.houses.keys():
                             for value in values:
                                 reinforcement_set[layer,house]=values
-                ampl.getSet(str(s)).setValues(reinforcement_set)
+                for i,instance in ampl.get_set(str(s)):
+                    instance.set_values(reinforcement_set[i])
+                
             else:
                 raise ValueError('Type Error setting AMPLPY Set', s)
 
@@ -544,7 +546,8 @@ class SubProblem:
                         if house in self.infrastructure_sp.houses.keys():
                             for value in values:
                                 reinforcement_set[layer,house]=values
-                ampl.getSet(str(s)).setValues(reinforcement_set)
+                for i,instance in ampl.get_set(str(s)):
+                    instance.set_values(reinforcement_set[i])
             else:
                 raise ValueError('Type Error setting AMPLPY Set', s)
 
