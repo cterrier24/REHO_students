@@ -95,12 +95,17 @@ param Units_Ext{u in Units} default 0;
 
 var Units_Mult{u in Units} <= Units_Fmax[u];
 var Units_Use{u in Units} binary, default 0;
+var Units_Use_Ext{u in Units} binary, default 0;
 
 subject to Units_sizing_c1{u in Units}:
 Units_Mult[u]-Units_Ext[u] >= Units_Use[u]*Units_Fmin[u];
 
 subject to Units_sizing_c2{u in Units}:
 Units_Mult[u]-Units_Ext[u] <= Units_Use[u]*(Units_Fmax[u]-Units_Ext[u]);
+
+
+subject to no_2_heating_system{h in House}:
+sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['NG_Boiler']: 'NG_Boiler' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['OIL_Boiler']: 'OIL_Boiler' in UnitTypes}(Units_Use_Ext[u]) <=1;
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
@@ -144,6 +149,14 @@ subject to MB_c1{h in House, l in ResourceBalances diff {'Electricity'}, hl in H
 subject to MB_c2{l in ResourceBalances,p in Period,t in Time[p]}:
 	 Network_demand[l,p,t] + sum{i in HousesOfLayer[l]}(Grid_supply[l,i,p,t]) -sum {b in UnitsOfDistrict inter UnitsOfLayer[l]} Units_supply[l,b,p,t] =
 	  Network_supply[l,p,t] + sum{j in HousesOfLayer[l]}(Grid_demand[l,j,p,t]) -sum {r in UnitsOfDistrict inter UnitsOfLayer[l]} Units_demand[l,r,p,t] ;
+
+param BigNumber default 1e9;
+subject to Units_Use_Ext_c1{u in Units}:
+Units_Use_Ext[u]*BigNumber >= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_supply[l,u,p,t]);
+
+subject to Units_Use_Ext_c2{u in Units}:
+Units_Use_Ext[u] <= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_supply[l,u,p,t]);
+
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
