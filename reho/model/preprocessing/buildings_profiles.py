@@ -321,5 +321,6 @@ def solar_gains_profile(buildings_data, sia_data, local_data):
         gains = irr_west / 1000 * g * 0.9 * glass_fraction_building / 100 * A_facades
         # glass fraction on facades from SIA 2024, 0.9 SIA 2024: acknowledge perpendicular rays
         np_gains = np.append(np_gains, gains)
+    np_gains[np_gains<=0]=0
 
     return np_gains
