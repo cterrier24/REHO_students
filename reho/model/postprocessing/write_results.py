@@ -184,7 +184,7 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
         df_12.columns = ['Capacity', 'UseCapacity']
         df_12.index.names = ['Layer', 'Hub']
         df_Grid = df_12.swaplevel().sort_index()
-        df_Grid['ReinforcementCost'] = df_Grid['UseCapacity'] * df3['CostLine_inv1']+(df_Grid['Capacity'] -df7['Line_Ext']*(1-df_Grid['UseCapacity']))*df4['CostLine_inv2']*df8['Line_Length']
+        df_Grid['ReinforcementCost'] = df_Grid['UseCapacity'] * df3['CostLine_inv1']+(df_Grid['Capacity'] -df7['Line_Ext']*(1-df_Grid['UseCapacity']))*df4['CostLine_inv2']#*df8['Line_Length'] # removed the multiplication per line_length for the cost, because an associated cost for each line has been estimated
         df_Grid['ReinforcementGWP'] = df_Grid['UseCapacity'] * df5['GWP_Line1'] + (df_Grid['Capacity']-df7['Line_Ext']*(1-df_Grid['UseCapacity']))*df6['GWP_Line2']*df8['Line_Length']
         return df_Grid
 

@@ -142,6 +142,8 @@ class QBuildingsReader:
         """
         self.data['buildings'] = file_reader(buildings_filename)
         self.data['buildings'] = translate_buildings_to_REHO(self.data['buildings'])
+        self.data['buildings']['egid'] = self.data['buildings']['egid'].astype(str)
+        self.data['buildings']['ratio'] = self.data['buildings']['ratio'].astype(str)
         if 'ReinforcementLineOfLayer' in self.data['buildings'].keys():
             self.data['buildings']['ReinforcementLineOfLayer'] = self.data['buildings']['ReinforcementLineOfLayer'].apply(lambda x: [float(i) for i in re.findall(r'\d+\.\d*',x.split('[')[-1].split(']')[0])])
         # self.data['buildings'] = add_geometry(self.data['buildings'])
