@@ -1,7 +1,7 @@
 import multiprocessing as mp
 import os.path
 import pickle
-
+import random
 from reho.model.master_problem import *
 from reho.model.postprocessing.KPIs import *
 from reho.model.postprocessing.building_scale_network_builder import *
@@ -594,6 +594,67 @@ class REHO(MasterProblem):
 
 
 
+    def pathway_building_scale(self,pathway_data,existing_init,renovation_rate=0):
+        # This function computes a myopic pathway, constrained by the list of EMOO constrains on a given set of period y_span
+
+        # Get the scenario name
+        Scn_ID = self.scenario["name"]
+
+        # If the set of time period is not given
+        if 'y_span' not in pathway_data.keys():
+            pathway_data['y_span']=None
+
+        if pathway_data['y_span'] is None:
+            y_span=list(np.linspace(2025,2050,len(pathway_data['EMOO'][list(pathway_data['EMOO'].keys())[0]])))
+        else:
+            y_span=pathway_data['y_span']
+
+        # First: Update the technology costs:
+        self.update_cost_building_units(y_current=y_span[0])
+
+        ########################
+        #### Initialization ####
+        ########################
+
+        # Insert initial system as first result
+        self.results={}
+        self.results[Scn_ID]={}
+        self.results[Scn_ID][0]=existing_init
+        
+
+        ####################################################
+        #### Main loop: iteration over all time periods ####
+        ####################################################
+    
+        for i in range(1,len(y_span)):
+            # Update the unit costs:
+            self.update_cost_building_units(y_current=y_span[i])
+
+            # Update the constraints
+            self.parameters['HeatPump_install']=pathway_data['EMOO']['PV']['Units_Use'][i]
+            self.parameters['HeatPump_install_Units_Mult']=pathway_data['EMOO']['HeatPump']['Units_Mult'][i]
+            
+            # Update the existing units
+            existing_units_current = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
+            existing_units = pd.DataFrame(columns=['Units_Mult'],index=self.infrastructure.Units).rename_axis(index='Unit')
+            existing_units['Units_Mult'] = existing_units.reset_index().apply(lambda x: existing_units_current.loc[x['Unit']]['Units_Mult'] if x['Unit'] in existing_units_current.index else 0, axis=1).values
+            self.parameters["Units_Ext"] = np.array([existing_units[existing_units.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Units_Mult'].to_list() for id, h in enumerate(self.infrastructure.houses)])
+            self.parameters["Units_Ext"] = self.parameters["Units_Ext"] * 0.9999
+            self.parameters["Units_Ext_district"] = existing_units[existing_units.index.str.contains('district')]['Units_Mult'].values
+
+            # Update the installed lines and transformers
+            self.parameters["Transformer_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc['Network'].values
+            self.parameters["Line_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc[
+                [h for h in self.infrastructure.houses]].unstack().values
+            
+            # Update the heat coefficient of the house
+            for h in self.infrastructure.House:
+                self.buildings_data[h]['U_h']=np.power((1-renovation_rate),y_span[i]-y_span[i-1])*self.buildings_data[h]['U_h']
+            
+            # Optimize the new system
+            self.single_optimization(Pareto_ID=i)
+
+
 
 
     def update_cost_building_units(self,cost_inv1_file=os.path.join(path_to_infrastructure,'cost_inv1_evolution.csv'),cost_inv2_file=os.path.join(path_to_infrastructure,'cost_inv2_evolution.csv'),y_current=2030):
@@ -644,7 +705,29 @@ class REHO(MasterProblem):
         return EMOO_list,y_span
  
 
-        
+    
+    def select_values_random(self,values, initial_selection, steps):
+        EMOO_data = {}
+        EMOO_bool = {}
+
+        j=0
+        bool_selection=initial_selection
+        EMOO_bool[j]=np.array([[i] for i in bool_selection])
+        EMOO_data[j]=np.array([[i] for i in np.array(values)*np.array(bool_selection)])
+        previous_step = steps[0]
+        position_list=[i for i in np.array(range(len(values))) if np.array(bool_selection)[i]==0]
+        for step in steps[1:]:
+            j+=1
+            nb_bui_to_select = step-previous_step
+            if nb_bui_to_select!=0:
+                position_selection = random.sample(position_list,nb_bui_to_select)
+            else:
+                position_selection=[]
+            bool_selection = np.array(bool_selection)+np.array([1 if i in position_selection else 0 for i in range(len(values))])
+            EMOO_bool[j] = np.array([[ii] for ii in [1 if i in position_selection else 0 for i in range(len(values))]])
+            EMOO_data[j] = np.array([[i] for i in np.array(values)*np.array(bool_selection)]) 
+            previous_step = step
+        return EMOO_data,EMOO_bool        
 
     def get_battery_pathway_from_EV(self,N_EV_start=0,N_EV_stop=15,c_EV=2039,k_EV=1,y_start=2024,y_stop=2050,n=7,EV_battery_lifetime=10,battery_reuse_lifetime=10,EV_battery_capacity=70,EV_battery_degradation_factor=0.7):
 
