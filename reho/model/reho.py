@@ -631,15 +631,18 @@ class REHO(MasterProblem):
             self.update_cost_building_units(y_current=y_span[i])
 
             # Update the constraints
-            self.parameters['HeatPump_install']=pathway_data['EMOO']['PV']['Units_Use'][i]
+            self.parameters['HeatPump_install']=pathway_data['EMOO']['HeatPump']['Units_Use'][i]
             self.parameters['HeatPump_install_Units_Mult']=pathway_data['EMOO']['HeatPump']['Units_Mult'][i]
+
+            self.parameters['PV_install']=pathway_data['EMOO']['PV']['Units_Use'][i]
+            self.parameters['PV_install_Units_Mult']=pathway_data['EMOO']['PV']['Units_Mult'][i]
             
             # Update the existing units
             existing_units_current = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
             existing_units = pd.DataFrame(columns=['Units_Mult'],index=self.infrastructure.Units).rename_axis(index='Unit')
             existing_units['Units_Mult'] = existing_units.reset_index().apply(lambda x: existing_units_current.loc[x['Unit']]['Units_Mult'] if x['Unit'] in existing_units_current.index else 0, axis=1).values
             self.parameters["Units_Ext"] = np.array([existing_units[existing_units.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Units_Mult'].to_list() for id, h in enumerate(self.infrastructure.houses)])
-            self.parameters["Units_Ext"] = self.parameters["Units_Ext"] * 0.9999
+            # self.parameters["Units_Ext"] = self.parameters["Units_Ext"] * 0.9999
             self.parameters["Units_Ext_district"] = existing_units[existing_units.index.str.contains('district')]['Units_Mult'].values
 
             # Update the installed lines and transformers
@@ -700,8 +703,12 @@ class REHO(MasterProblem):
         c=np.log((E_start-E_stop)/(E-E_stop)-1)/(-k)+y
         y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
         EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
+
+        diff_start = E
+        diff_stop = EMOO_list[-1]
         if final_value is True:
-            EMOO_list=(EMOO_list-EMOO_list[0])*(E_stop-E)/(EMOO_list[-1]-EMOO_list[0])+E # Stretching the curve
+            diff_stop=E_stop
+        EMOO_list=(EMOO_list-EMOO_list[0])*(diff_stop-diff_start)/(EMOO_list[-1]-EMOO_list[0])+diff_start # Stretching the curve
         return EMOO_list,y_span
  
 
@@ -724,6 +731,7 @@ class REHO(MasterProblem):
             else:
                 position_selection=[]
             bool_selection = np.array(bool_selection)+np.array([1 if i in position_selection else 0 for i in range(len(values))])
+            position_list = [i for i in np.array(range(len(values))) if np.array(bool_selection)[i]==0]
             EMOO_bool[j] = np.array([[ii] for ii in [1 if i in position_selection else 0 for i in range(len(values))]])
             EMOO_data[j] = np.array([[i] for i in np.array(values)*np.array(bool_selection)]) 
             previous_step = step
