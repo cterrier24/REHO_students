@@ -212,7 +212,7 @@ param CostTransformer_inv1{l in ResourceBalances}>=0 default 0;
 param CostTransformer_inv2{l in ResourceBalances}>=0 default 0;
 param GWP_Transformer1{l in ResourceBalances} default 0;
 param GWP_Transformer2{l in ResourceBalances} default 0;
-param Transformer_Ext{l in ResourceBalances} default 1e8;
+param Transformer_Ext{l in ResourceBalances} default min{i in ReinforcementTrOfLayer[l]} i;
 param Transformer_Lifetime{l in ResourceBalances} default 20;
 
 # Lines additional capacities
@@ -224,7 +224,7 @@ param CostLine_inv2{h in House,l in ResourceBalances} default 70; # [CHF/kW/m]
 param Line_Length{h in House,l in ResourceBalances} default 10;
 param GWP_Line1{l in ResourceBalances} default 0;
 param GWP_Line2{l in ResourceBalances} default 0;
-param Line_Ext{h in House,l in ResourceBalances} default 1e8;
+param Line_Ext{h in House, l in ResourceBalances} default min{i in ReinforcementLineOfLayer[l,h]} i;
 
 subject to transformer_additional_capacity_c1{l in ResourceBalances}:
 Use_TransformerCapacity[l] * (max {i in ReinforcementTrOfLayer[l]} i)>= TransformerCapacity[l]-Transformer_Ext[l];

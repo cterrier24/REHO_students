@@ -158,6 +158,8 @@ subject to Units_Use_Ext_c2{u in Units}:
 Units_Use_Ext[u] <= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_supply[l,u,p,t]);
 
 
+
+
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
 # HEAT CASCADE
@@ -242,7 +244,7 @@ param CostTransformer_inv1{l in ResourceBalances}>=0 default 0;
 param CostTransformer_inv2{l in ResourceBalances}>=0 default 0;
 param GWP_Transformer1{l in ResourceBalances} default 0;
 param GWP_Transformer2{l in ResourceBalances} default 0;
-param Transformer_Ext{l in ResourceBalances} default 1e8;
+param Transformer_Ext{l in ResourceBalances} default min{i in ReinforcementTrOfLayer[l]} i;
 param Transformer_Lifetime{l in ResourceBalances} default 20;
 
 # Lines additional capacities
@@ -254,7 +256,7 @@ param CostLine_inv2{h in House, l in ResourceBalances} default 0; # [CHF/kW]
 param Line_Length{h in House,l in ResourceBalances} default 10; # [m] # Not used for cost, since the cost function is computed separately for each line. 
 param GWP_Line1{l in ResourceBalances} default 0; #[kgCO2/m]
 param GWP_Line2{l in ResourceBalances} default 0; #[kgCO2/kW/m]
-param Line_Ext{h in House, l in ResourceBalances} default 1e8;
+param Line_Ext{h in House, l in ResourceBalances} default min{i in ReinforcementLineOfLayer[l,h]} i;
 param Line_Lifetime{h in House, l in ResourceBalances} default 20;
 
 ######################################################################################################################
@@ -541,3 +543,14 @@ sum{h in House} (Grid_supply[l,h,p,t]) = Network_supply[l,p,t];
 
 subject to disallow_exchanges_2{l in ResourceBalances,p in PeriodStandard,t in Time[p]: l = 'Electricity'}:
 sum{h in House} (Grid_demand[l,h,p,t]) = Network_demand[l,p,t];
+
+
+#--------------------------------------------------------------------------------------------------------------------#
+# Enforce_PV_max limited also by reinforcement
+#--------------------------------------------------------------------------------------------------------------------#
+param PVA_module_size_reinf{u in UnitsOfType['PV']} default 1.6 ;
+param PVA_efficiency_ref_reinf{u in UnitsOfType['PV']}default 0.2;
+param PV_max{h in House, u in UnitsOfType['PV']} := min(((SolarRoofArea[h] div PVA_module_size_reinf[u]) * PVA_module_size_reinf[u]), max {i in ReinforcementLineOfLayer['Electricity', h]} ((i/PVA_efficiency_ref_reinf[u] div PVA_module_size_reinf[u]) * PVA_module_size_reinf[u]));
+
+subject to enforce_PV_max_reinforcement{h in House, u in UnitsOfType['PV']}:
+sum{ui in UnitsOfType['ThermalSolar'] inter UnitsOfHouse[h]}(Units_Mult[ui]) + sum{uj in UnitsOfType['PV'] inter UnitsOfHouse[h]}(Units_Mult[uj]/PVA_efficiency_ref_reinf[uj]) = PV_max[h,u];

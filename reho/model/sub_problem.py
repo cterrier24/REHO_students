@@ -641,6 +641,7 @@ class SubProblem:
         ampl.getConstraint('disallow_exchanges_2').drop()
         ampl.getConstraint('no_ElectricalHeater_without_HP').drop()
         ampl.getConstraint('no_2_heating_system').drop()
+        ampl.getConstraint('enforce_PV_max_reinforcement').drop()
 
         if 'OIL_Boiler' in self.infrastructure_sp.UnitsOfType:
             ampl.getConstraint('enforce_OIL_Boiler').drop()
