@@ -200,6 +200,11 @@ class MasterProblem:
                 SP_scenario['specific'].remove(scenario_cst)
                 SP_scenario_init['specific'].remove(scenario_cst)
 
+        if 'EMOO_PV_lower' in scenario['EMOO'].keys():
+            SP_scenario['EMOO']['EMOO_PV_lower'] = scenario['EMOO']['EMOO_PV_lower']
+        if 'EMOO_HP_lower' in scenario['EMOO'].keys():
+            SP_scenario['EMOO']['EMOO_HP_lower'] = scenario['EMOO']['EMOO_HP_lower']   
+
         return scenario, SP_scenario, SP_scenario_init
 
     def initiate_decomposition(self, scenario, Scn_ID=0, Pareto_ID=1, epsilon_init=None):
@@ -286,6 +291,11 @@ class MasterProblem:
         # find district structure and parameter for one single building
         buildings_data_SP, parameters_SP = self.split_parameter_sets_per_building(h)
 
+        if 'EMOO_PV_lower' in scenario['EMOO'].keys():
+            parameters_SP['PV_penalty'] = 1
+        if 'EMOO_HP_lower' in scenario['EMOO'].keys():
+            parameters_SP['HP_penalty'] = 1
+    
         # epsilon constraints on districts may lead to infeasibilities on building level -> apply them in MP only
         if epsilon_init is not None and self.method['building-scale']:
             emoo = scenario["EMOO"].copy()
@@ -300,6 +310,8 @@ class MasterProblem:
         elif not self.method['building-scale']:
             scenario, beta_list = self.get_beta_values(scenario, beta)
             parameters_SP['beta_duals'] = beta_list
+
+
 
         if self.method['use_facades'] or self.method['use_pv_orientation']:
             REHO = SubProblem(self.infrastructure_SP[h], buildings_data_SP, self.local_data, parameters_SP, self.set_indexed, self.cluster, scenario,
@@ -317,7 +329,6 @@ class MasterProblem:
                 else:
                     ampl.getVariable('Units_Mult').get(unit + '_' + h).fix(self.df_fix_Units.Units_Mult.loc[unit + '_' + h])
                     ampl.getVariable('Units_Use').get(unit + '_' + h).fix(float(self.df_fix_Units.Units_Use.loc[unit + '_' + h]))
-
         ampl.solve()
         exitcode = exitcode_from_ampl(ampl)
 
@@ -754,10 +765,20 @@ class MasterProblem:
 
         # find district structure, objective, beta and parameter for one single building
         buildings_data_SP, parameters_SP = self.split_parameter_sets_per_building(h, parameters_SP)
+
+        if 'EMOO_PV_lower' in scenario['EMOO'].keys():
+            parameters_SP['PV_penalty'] = 1
+            del scenario['EMOO']['EMOO_PV_lower']
+        if 'EMOO_HP_lower' in scenario['EMOO'].keys():
+            parameters_SP['HP_penalty'] = 1
+            del scenario['EMOO']['EMOO_HP_lower']
+
         beta = - self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter - 1, h, 'beta')
         scenario, beta_list = self.get_beta_values(scenario, beta)
         parameters_SP['beta_duals'] = beta_list
 
+
+    
         # Execute optimization
         if self.method['use_facades'] or self.method['use_pv_orientation']:
             REHO = SubProblem(self.infrastructure_SP[h], buildings_data_SP, self.local_data, parameters_SP, self.set_indexed, self.cluster,

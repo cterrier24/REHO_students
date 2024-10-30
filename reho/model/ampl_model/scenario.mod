@@ -7,13 +7,18 @@
 param penalty_ratio default 1e-6;
 var penalties default 0;
 
+param PV_penalty default 0;
+param HP_penalty default 0;
+
 subject to penalties_contraints:
 penalties = sum{h in House} Costs_House_cft[h] +
             penalty_ratio * Costs_grid_connection +
             penalty_ratio * (Costs_op + tau*(Costs_inv + Costs_rep)) +
             penalty_ratio * (GWP_op + GWP_constr) +
             penalty_ratio * sum{l in ResourceBalances,h in HousesOfLayer[l],p in Period,t in Time[p]} (Grid_supply[l,h,p,t] + Grid_demand[l,h,p,t]) +
-            penalty_ratio * sum{l in ResourceBalances,p in Period,t in Time[p]} (Network_supply[l,p,t] + Network_demand[l,p,t]);
+            penalty_ratio * sum{l in ResourceBalances,p in Period,t in Time[p]} (Network_supply[l,p,t] + Network_demand[l,p,t]) +
+            penalty_ratio * PV_penalty * sum{u in UnitsOfType['PV']:'PV' in UnitTypes}(Units_Mult[u]) +
+            penalty_ratio * HP_penalty * sum{u in UnitsOfType['HeatPump']:'HeatPump' in UnitTypes}(Units_Mult[u]);
 
 minimize OPEX: 
 Costs_op + Costs_grid_connection + penalties;
@@ -71,6 +76,8 @@ var EMOO_slack_capex 						>= 0, <= abs(EMOO_CAPEX)*(sum{h in House} ERA[h]);
 var EMOO_slack_opex							>= 0, <= abs(EMOO_OPEX)*(sum{h in House} ERA[h]);
 var EMOO_slack_totex						>= 0, <= abs(EMOO_TOTEX)*(sum{h in House} ERA[h]);
 var EMOO_slack_gwp							>= 0, <= abs(EMOO_GWP)*(sum{h in House} ERA[h]);
+
+
 
 subject to EMOO_CAPEX_constraint:
 tau*(Costs_inv +Costs_rep )+ EMOO_slack_capex = EMOO_CAPEX*(sum{h in House} ERA[h]);
