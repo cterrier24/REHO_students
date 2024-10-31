@@ -695,20 +695,33 @@ class REHO(MasterProblem):
     def get_logistic_partial(self,E_start=0,E_stop=1,y_start=2024,y_stop=2050,k=0.1,y=2024,E=0.6,n=5,final_value=False):
         # If you don't want to start from E_start with a flat slope, because you know a measure (y,E) (The logistic curve started earlier than y_start). You can start from a partial logistic curve. 
         # Since a measure is taken (y,E), the number of parameters to select is reduced by one. This means, instead of selecting k and c, you only select k: c is deduced from the measure (y,E). 
-        if E_start==E:
-            if E_stop>=E_start:
-                E_start = E_start-E_stop/1000
-            else:
-                E_start = E_start+E_stop/1000
-        c=np.log((E_start-E_stop)/(E-E_stop)-1)/(-k)+y
-        y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
-        EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
 
-        diff_start = E
-        diff_stop = EMOO_list[-1]
-        if final_value is True:
-            diff_stop=E_stop
-        EMOO_list=(EMOO_list-EMOO_list[0])*(diff_stop-diff_start)/(EMOO_list[-1]-EMOO_list[0])+diff_start # Stretching the curve
+        # Create year steps       
+        y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
+
+        # Check if flat curve
+        if E_start==E_stop:
+            EMOO_list=[0 for key in y_span]
+        else:
+            if E_start==E: # Correct E_start in order not to get extreme values for c and EMOO_list
+                if E_stop>=E_start:
+                    E_start = E_start-E_stop/1000
+                else:
+                    E_start = E_start+E_stop/1000
+
+            # Compute c        
+            c=np.log((E_start-E_stop)/(E-E_stop)-1)/(-k)+y
+            
+            # Compute EMOO_list
+            EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
+
+            # Stretch the curve
+            diff_start = E
+            diff_stop = EMOO_list[-1]
+            if final_value is True:
+                diff_stop=E_stop
+            EMOO_list=(EMOO_list-EMOO_list[0])*(diff_stop-diff_start)/(EMOO_list[-1]-EMOO_list[0])+diff_start # Stretching the curve
+
         return EMOO_list,y_span
  
 
