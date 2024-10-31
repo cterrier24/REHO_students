@@ -292,9 +292,9 @@ class MasterProblem:
         buildings_data_SP, parameters_SP = self.split_parameter_sets_per_building(h)
 
         if 'EMOO_PV_lower' in scenario['EMOO'].keys():
-            parameters_SP['PV_penalty'] = 1
+            parameters_SP['PV_penalty'] = 1000
         if 'EMOO_HP_lower' in scenario['EMOO'].keys():
-            parameters_SP['HP_penalty'] = 1
+            parameters_SP['HP_penalty'] = 1000
     
         # epsilon constraints on districts may lead to infeasibilities on building level -> apply them in MP only
         if epsilon_init is not None and self.method['building-scale']:
