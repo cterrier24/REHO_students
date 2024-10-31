@@ -701,7 +701,9 @@ class REHO(MasterProblem):
 
         # Check if flat curve
         if E_start==E_stop:
-            EMOO_list=[0 for key in y_span]
+            EMOO_list=[E_start for key in y_span]
+        elif E==E_stop:
+            EMOO_list=[E_stop for key in y_span]
         else:
             if E_start==E: # Correct E_start in order not to get extreme values for c and EMOO_list
                 if E_stop>=E_start:
