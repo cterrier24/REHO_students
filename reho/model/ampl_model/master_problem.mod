@@ -452,10 +452,13 @@ subject to EMOO_elec_export_constraint:
 sum{l in ResourceBalances, p in PeriodStandard,t in Time[p]} ( Network_demand[l,p,t] - Network_supply[l,p,t] ) / 1000  =  EMOO_slack_elec_export + EMOO_elec_export * (sum{h in House} ERA[h]);
 
 param penalty_ratio default 1e-6;
+param PV_penalty default 0;
+param HP_penalty default 0;
+
 var penalties default 0;
 
 subject to penalties_contraints:
-penalties = penalty_ratio * (Costs_inv + Costs_op + sum{k in Lca_kpi} lca_tot[k] +
+penalties = PV_penalty*PV_tot + HP_penalty*HP_tot + penalty_ratio * (Costs_inv + Costs_op + sum{k in Lca_kpi} lca_tot[k] +
             sum{l in ResourceBalances,p in PeriodExtreme,t in Time[p]} (Network_supply[l,p,t] + Network_demand[l,p,t]) );
 
 #--------------------------------------------------------------------------------------------------------------------#
