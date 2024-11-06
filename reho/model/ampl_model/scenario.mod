@@ -66,6 +66,9 @@ param EMOO_TOTEX default 0;
 param EMOO_GWP default 0;
 param EMOO_lca{k in Lca_kpi} default 1e6;
 
+param EMOO_PV_lower default 0;
+param EMOO_HP_lower default 0;
+
 param EMOO_grid default 0;
 param EMOO_network default 0;
 param EMOO_GU_demand default 1e9;

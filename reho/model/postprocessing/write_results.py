@@ -39,6 +39,9 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
         df73 = get_ampl_data(ampl, 'EMOO_TOTEX')
         df75 = get_ampl_data(ampl, 'EMOO_GWP')
         df76 = get_ampl_data(ampl, 'EMOO_grid')
+        df77 = get_ampl_data(ampl, 'EMOO_PV_lower')
+        df78 = get_ampl_data(ampl, 'EMOO_HP_lower')
+
 
         df_N1 = get_ampl_data(ampl, 'Costs_op')  # without the comfort penalty costs
         df_N2 = get_ampl_data(ampl, 'Costs_inv')
@@ -58,7 +61,7 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
 
         df_Performance = pd.concat([df_PerformanceBuilding, df_PerformanceNetwork], axis=0)
 
-        df_Epsilon = pd.concat([df71, df72, df73, df75, df76], axis=1)
+        df_Epsilon = pd.concat([df71, df72, df73, df75, df76,df77,df78], axis=1)
         df_Epsilon['Objective'] = get_ampl_data(ampl, scenario["Objective"]).values[0][0] - df_N4.values[0][0]
         df_Epsilon = df_Epsilon.rename(index={0: 'Network'})
 

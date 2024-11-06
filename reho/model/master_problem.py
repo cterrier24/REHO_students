@@ -293,8 +293,10 @@ class MasterProblem:
 
         if 'EMOO_PV_lower' in scenario['EMOO'].keys():
             parameters_SP['PV_penalty'] = 0
+            parameters_SP['EMOO_PV_lower'] =scenario['EMOO']['EMOO_PV_lower']
         if 'EMOO_HP_lower' in scenario['EMOO'].keys():
             parameters_SP['HP_penalty'] = 0
+            parameters_SP['EMOO_HP_lower'] =scenario['EMOO']['EMOO_HP_lower']
     
         # epsilon constraints on districts may lead to infeasibilities on building level -> apply them in MP only
         if epsilon_init is not None and self.method['building-scale']:
@@ -513,9 +515,9 @@ class MasterProblem:
                     MP_parameters[key] = self.parameters[key]
 
         if 'EMOO_PV_lower' in self.scenario['EMOO'].keys():
-            MP_parameters['PV_penalty'] = 1000
+            MP_parameters['PV_penalty'] = 1
         if 'EMOO_HP_lower' in self.scenario['EMOO'].keys():
-            MP_parameters['HP_penalty'] = 1000
+            MP_parameters['HP_penalty'] = 1
 
         MP_parameters['df_grid'] = df_Grid_t[['Grid_demand', 'Grid_supply']]
         MP_parameters['ERA'] = np.asarray([self.buildings_data[house]['ERA'] for house in self.buildings_data.keys()])
@@ -772,11 +774,13 @@ class MasterProblem:
         buildings_data_SP, parameters_SP = self.split_parameter_sets_per_building(h, parameters_SP)
 
         if 'EMOO_PV_lower' in scenario['EMOO'].keys():
-            parameters_SP['PV_penalty'] = 0
-            del scenario['EMOO']['EMOO_PV_lower']
+            parameters_SP['PV_penalty'] = scenario['EMOO']['EMOO_PV_lower']
+            parameters_SP['EMOO_PV_lower'] = 0
+            # del scenario['EMOO']['EMOO_PV_lower']
         if 'EMOO_HP_lower' in scenario['EMOO'].keys():
             parameters_SP['HP_penalty'] = 0
-            del scenario['EMOO']['EMOO_HP_lower']
+            parameters_SP['PV_penalty'] = scenario['EMOO']['EMOO_PV_lower']
+            # del scenario['EMOO']['EMOO_HP_lower']
 
         beta = - self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter - 1, h, 'beta')
         scenario, beta_list = self.get_beta_values(scenario, beta)
