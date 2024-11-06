@@ -515,9 +515,9 @@ class MasterProblem:
                     MP_parameters[key] = self.parameters[key]
 
         if 'EMOO_PV_lower' in self.scenario['EMOO'].keys():
-            MP_parameters['PV_penalty'] = 100
+            MP_parameters['PV_penalty'] = 1000
         if 'EMOO_HP_lower' in self.scenario['EMOO'].keys():
-            MP_parameters['HP_penalty'] = 100
+            MP_parameters['HP_penalty'] = 1000
 
         MP_parameters['df_grid'] = df_Grid_t[['Grid_demand', 'Grid_supply']]
         MP_parameters['ERA'] = np.asarray([self.buildings_data[house]['ERA'] for house in self.buildings_data.keys()])
