@@ -3,7 +3,7 @@ import logging
 
 from amplpy import AMPL, Environment
 
-import reho.model.preprocessing.EV_profile_generator as EV_gen
+import reho.model.preprocessing.mobility_generator as EV_gen
 import reho.model.preprocessing.buildings_profiles as buildings_profiles
 import reho.model.preprocessing.emissions_parser as emissions
 import reho.model.preprocessing.weather as weather
@@ -303,16 +303,8 @@ class SubProblem:
         if "EV_plugged_out" not in self.parameters_to_ampl:
             if len(self.infrastructure_sp.UnitsOfDistrict) != 0:
                 if "EV_district" in self.infrastructure_sp.UnitsOfDistrict:
-                    self.parameters_to_ampl["EV_plugged_out"], self.parameters_to_ampl["EV_plugging_in"] = EV_gen.generate_EV_plugged_out_profiles_district(self.cluster_sp)
-                    # self.parameters_to_ampl["bike_dailyprofile"] = EV_gen.bike_temp(self.cluster_compact)
-                    d = None
-                    m = None
-                    if 'DailyDist' in self.parameters_sp:
-                        d = self.parameters_sp['DailyDist']
-                    if "Mode_Speed" in self.parameters_sp:
-                        m = self.parameters_sp['Mode_Speed']
-                    p = EV_gen.generate_mobility_parameters(self.cluster_sp,self.parameters_sp['Population'],
-                                                            d,m,np.append(self.infrastructure_sp.UnitsOfLayer["Mobility"],'Public_transport'))
+                    p = EV_gen.generate_mobility_parameters(self.cluster_sp,self.parameters_sp,
+                                                            np.setdiff1d(np.append(self.infrastructure_sp.UnitsOfLayer["Mobility"],'Public_transport'),self.infrastructure_sp.UnitsOfType['EV_charger']))
                     self.parameters_to_ampl.update(p)
 
     def set_HP_parameters(self, ampl):
@@ -757,6 +749,9 @@ def initialize_default_methods(method):
         method["include_all_solutions"] = True
     if 'DHN_CO2' not in method:
         method['DHN_CO2'] = False
+
+    if "external_district" not in method:
+        method['external_district'] = False
 
     if 'use_Storage_Interperiod' not in method:
         method['use_Storage_Interperiod'] = False

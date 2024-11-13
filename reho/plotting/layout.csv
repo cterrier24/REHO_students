@@ -76,7 +76,11 @@ Bike_district,Bikes,Bike,Vélos,#90EE90,lightgreen,#90EE90,lightgreen
 ElectricBike_district,Electric bikes,EBike,Vélos électriques,#00FF7F,springgreen,#00FF7F,springgreen
 Total_EV_fleet,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise,#7AC5CD,blue
 EV_district,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise,#7AC5CD,blue
+<<<<<<< HEAD
 EVcharging_district,EV charging station,EVchrg,Stations de recharge,#008080,teal,#008080,teal
 ,,,,,,,
 PEM_electrolyzer_district,PEM electrolyzer district,District PEM ETZ,Electrolyseur PEM (district),#008080,teal,#008080,teal
 Hydrogen,Hydrogen,H2,H2,#32CD32,limegreen,#32CD32,limegreen
+=======
+EV_charger_district,EV charging station,EVchrg,Stations de recharge,#008080,teal,#008080,teal
+>>>>>>> main
