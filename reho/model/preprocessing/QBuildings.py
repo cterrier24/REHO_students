@@ -406,6 +406,7 @@ def translate_buildings_to_REHO(df_buildings):
         'GAS_industry':'GAS_industry',
         'DHN_industry':'DHN_industry',
         'ELEC_industry':'ELEC_industry',
+        'DHN_future':'DHN_future',
 
         # Reinforcement
         'LINE_LENGTH_FROM_TOPO':'LINE_LENGTH',
