@@ -6,6 +6,7 @@ from reho.model.master_problem import *
 from reho.model.postprocessing.KPIs import *
 from reho.model.postprocessing.building_scale_network_builder import *
 from reho.paths import *
+import copy
 
 __doc__ = """
 File for constructing and solving the optimization problem.
@@ -29,7 +30,7 @@ class REHO(MasterProblem):
         self.initialize_optimization_tracking_attributes()
 
         # input attributes
-        self.scenario = scenario.copy()
+        self.scenario = copy.deepcopy(scenario)
         if 'specific' not in self.scenario:
             self.scenario['specific'] = []
         if 'enforce_units' not in self.scenario:
@@ -418,7 +419,7 @@ class REHO(MasterProblem):
         self.infrastructure = infrastructure.Infrastructure(buildings,  units, self.infrastructure.grids)
 
 
-    def pathway(self,pathway_data={"y_span":None,'EMOO':{"GWP":[[0,0,0]]}},existing_init=None,renovation_rate=0,EV_data=None):
+    def pathway(self,pathway_data={"y_span":None,'EMOO':{"GWP":[[0,0,0]]}},existing_init=None):
         # This function computes a myopic pathway, constrained by the list of EMOO constrains on a given set of period y_span
 
         # Get the scenario name
@@ -442,26 +443,18 @@ class REHO(MasterProblem):
         self.update_cost_building_units(y_current=y_span[0])
 
         # EV
-        if EV_data is not None:
-            i_EV=(EV_data['EV_share_2050']-EV_data['EV_share_2024'])/(y_span[-1]-y_span[0])
-            self.parameters['n_vehicles']=np.round(EV_data['factor_EV']*self.ERA*EV_data['EV_share_2024'])
+        if 'EV' in pathway_data.keys():
+            i_EV=(pathway_data['EV']['EV_share_2050']-pathway_data['EV']['EV_share_2024'])/(y_span[-1]-y_span[0])
+            self.parameters['Population']=np.round(pathway_data['EV']['factor_EV']*self.ERA*pathway_data['EV']['EV_share_2024'])
         else:
             i_EV=0
+            self.parameters['Population']=0
 
         ########################
         #### Initialization ####
         ########################
 
-        # The first iteration should be done outside the loop, since there are yet no results.
-
-        # Additionally, if a csv file is given with all existing units of the district,
-        # the model should run in a CAPEX formulation to be sure that the real installed capacities are coherent with the model.
-        # Then, the first iteration is performed based on the results of this artificial optimization
-
-        # Existing init is not working anymore
-
         if existing_init is None:
-
             for EMOO_type in pathway_data['EMOO']:
                 EMOO_list=pathway_data['EMOO'][EMOO_type] 
                 if 'EMOO' not in self.scenario.keys():
@@ -483,6 +476,7 @@ class REHO(MasterProblem):
         ####################################################
     
         for i in range(1,len(y_span)):
+
             # Update the unit costs:
             self.update_cost_building_units(y_current=y_span[i])
 
@@ -496,9 +490,16 @@ class REHO(MasterProblem):
 
             # Update the EVs
             delta_year=y_span[i]-y_span[i-1]
-            self.parameters["n_vehicles"] = self.parameters["n_vehicles"]+np.round(i_EV*EV_data['factor_EV']*self.ERA*delta_year)
+            self.parameters["Population"] = self.parameters["Population"]+np.round(i_EV*pathway_data['EV']['factor_EV']*self.ERA*delta_year)
 
-            
+            # Update the renovation
+            if 'renovation' in pathway_data.keys():
+                j=0
+                for h in self.infrastructure.House:
+                    if pathway_data['renovation'][i][j][0]!=0:
+                        self.buildings_data[h]['U_h']=pathway_data['renovation'][i][j][0]
+                    j+=1
+
             # Update the existing units
             existing_units_current = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
             existing_units = pd.DataFrame(columns=['Units_Mult'],index=self.infrastructure.Units).rename_axis(index='Unit')
@@ -511,10 +512,6 @@ class REHO(MasterProblem):
             self.parameters["Transformer_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc['Network'].values
             self.parameters["Line_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc[
                 [h for h in self.infrastructure.houses]].unstack().values
-            
-            # Update the heat coefficient of the house
-            for h in self.infrastructure.House:
-                self.buildings_data[h]['U_h']=np.power((1-renovation_rate),y_span[i]-y_span[i-1])*self.buildings_data[h]['U_h']
 
             # Optimize the new system
             self.single_optimization(Pareto_ID=i)
@@ -522,7 +519,7 @@ class REHO(MasterProblem):
 
 
 
-    def pathway_building_scale(self,pathway_data,existing_init,renovation_rate=0):
+    def pathway_building_scale(self,pathway_data,existing_init):
         # This function computes a myopic pathway, constrained by the list of EMOO constrains on a given set of period y_span
 
         # Get the scenario name
@@ -540,6 +537,14 @@ class REHO(MasterProblem):
         # First: Update the technology costs:
         self.update_cost_building_units(y_current=y_span[0])
 
+        # EV
+        if 'EV' in pathway_data.keys():
+            i_EV=(pathway_data['EV']['EV_share_2050']-pathway_data['EV']['EV_share_2024'])/(y_span[-1]-y_span[0])
+            self.parameters['Population']=np.round(pathway_data['EV']['factor_EV']*self.ERA*pathway_data['EV']['EV_share_2024'])
+        else:
+            i_EV=0
+            self.parameters['Population']=0
+
         ########################
         #### Initialization ####
         ########################
@@ -555,6 +560,7 @@ class REHO(MasterProblem):
         ####################################################
     
         for i in range(1,len(y_span)):
+
             # Update the unit costs:
             self.update_cost_building_units(y_current=y_span[i])
 
@@ -564,6 +570,18 @@ class REHO(MasterProblem):
 
             self.parameters['PV_install']=pathway_data['EMOO']['PV']['Units_Use'][i]
             self.parameters['PV_install_Units_Mult']=pathway_data['EMOO']['PV']['Units_Mult'][i]
+
+            # Update the EVs
+            delta_year=y_span[i]-y_span[i-1]
+            self.parameters["Population"] = self.parameters["Population"]+np.round(i_EV*pathway_data['EV']['factor_EV']*self.ERA*delta_year)
+
+            # Update the renovation
+            if 'renovation' in pathway_data.keys():
+                j=0
+                for h in self.infrastructure.House:
+                    if pathway_data['renovation'][i][j][0]!=0:
+                        self.buildings_data[h]['U_h']=pathway_data['renovation'][i][j][0]
+                    j+=1
             
             # Update the existing units
             existing_units_current = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
@@ -577,10 +595,6 @@ class REHO(MasterProblem):
             self.parameters["Transformer_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc['Network'].values
             self.parameters["Line_Ext"] = self.results[Scn_ID][i-1]['df_Grid']['Capacity'].loc[
                 [h for h in self.infrastructure.houses]].unstack().values
-            
-            # Update the heat coefficient of the house
-            for h in self.infrastructure.House:
-                self.buildings_data[h]['U_h']=np.power((1-renovation_rate),y_span[i]-y_span[i-1])*self.buildings_data[h]['U_h']
             
             # Optimize the new system
             self.single_optimization(Pareto_ID=i)

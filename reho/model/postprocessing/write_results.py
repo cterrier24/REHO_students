@@ -605,7 +605,8 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
     df5 = get_ampl_data(ampl, 'lifetime')
     df7 = get_ampl_data(ampl, 'Cost_inv1', multi_index=False)
     df8 = get_ampl_data(ampl, 'Cost_inv2', multi_index=False)
-    df_Unit = pd.concat([df1, df2, df3, df4, df5, df7, df8], axis=1)
+    df9 = get_ampl_data(ampl, 'Units_Ext', multi_index=False)
+    df_Unit = pd.concat([df1, df2, df3, df4, df5, df7, df8,df9], axis=1)
     if read_DHN:
         df_Unit.at["DHN_pipes_district", ("Units_Use", "Units_Mult", "Costs_Unit_inv")] = [1, 1, get_ampl_data(ampl, 'DHN_inv')["DHN_inv"][0]]
     df_Results["df_Unit"] = df_Unit.sort_index()

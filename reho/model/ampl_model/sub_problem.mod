@@ -15,7 +15,7 @@ set Period;				# Set of periods (days)
 set PeriodStandard;		# Set of standard periods (not extreme) 
 set PeriodExtreme := {Period diff PeriodStandard};
 set Lca_kpi;
-set HP_Tsupply default {35,45,55};																	#-
+set HP_Tsupply default {35,45,55,65};																	#-
 
 #-TIME SETS
 param TimeStart default 1;
@@ -105,7 +105,7 @@ Units_Mult[u]-Units_Ext[u] <= Units_Use[u]*(Units_Fmax[u]-Units_Ext[u]);
 
 
 subject to no_2_heating_system{h in House}:
-sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['NG_Boiler']: 'NG_Boiler' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['OIL_Boiler']: 'OIL_Boiler' in UnitTypes}(Units_Use_Ext[u]) <=1;
+sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['OIL_Boiler']: 'OIL_Boiler' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['NG_Boiler']: 'NG_Boiler' in UnitTypes}(Units_Use_Ext[u]) <=1;
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
@@ -152,10 +152,10 @@ subject to MB_c2{l in ResourceBalances,p in Period,t in Time[p]}:
 
 param BigNumber default 1e9;
 subject to Units_Use_Ext_c1{u in Units}:
-Units_Use_Ext[u]*BigNumber >= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_supply[l,u,p,t]);
+Units_Use_Ext[u]*BigNumber >= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_demand[l,u,p,t]);
 
 subject to Units_Use_Ext_c2{u in Units}:
-Units_Use_Ext[u] <= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_supply[l,u,p,t]);
+Units_Use_Ext[u] <= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_demand[l,u,p,t]);
 
 
 

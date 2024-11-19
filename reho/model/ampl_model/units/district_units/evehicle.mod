@@ -236,5 +236,7 @@ EV_E_stored_plug_in[u,p,t] = EV_efficiency*EV_E_stored[u,p,last(Time[p])] * (1-E
 											(EV_demand[u,p,t] - EV_supply[u,p,t])*dt[p];
 
 
+subject to enforce_nvehicles_to_pop:
+sum{u in UnitsOfType['EV']} (n_vehicles[u]) = Population;
 #-----------------------------------------------------------------------------------------------------------------------	
 	

@@ -2,7 +2,7 @@ import gc
 import time
 import warnings
 from itertools import groupby
-
+import copy
 import coloredlogs
 import pandas as pd
 
@@ -66,8 +66,8 @@ class MasterProblem:
 
         # infrastructure
         if method['use_facades'] or method['use_pv_orientation']:
-            self.qbuildings_data = qbuildings_data
-        self.buildings_data = qbuildings_data['buildings_data']
+            self.qbuildings_data = copy.deepcopy(qbuildings_data)
+        self.buildings_data = copy.deepcopy(qbuildings_data['buildings_data'])
         self.ERA = sum([self.buildings_data[house]['ERA'] for house in self.buildings_data.keys()])
 
         self.infrastructure = infrastructure.Infrastructure(qbuildings_data, units, grids)
@@ -290,7 +290,7 @@ class MasterProblem:
             print('INITIATE HOUSE: ' + h)
 
         # find district structure and parameter for one single building
-        buildings_data_SP, parameters_SP = self.split_parameter_sets_per_building(h)
+        buildings_data_SP, parameters_SP, set_indexed_SP = self.split_parameter_sets_per_building(h)
 
         if 'EMOO_PV_lower' in scenario['EMOO'].keys():
             parameters_SP['PV_penalty'] = 0
@@ -521,8 +521,8 @@ class MasterProblem:
         MP_parameters['Area_tot'] = self.ERA
 
         if "Mobility" in self.infrastructure.UnitsOfLayer:
-            p = EV_gen.generate_mobility_parameters(self.cluster,self.parameters,
-                                                    np.setdiff1d(np.append(self.infrastructure.UnitsOfLayer["Mobility"],'Public_transport'),self.infrastructure.UnitsOfType["EV_charger"]))
+            transportunits=np.setdiff1d(np.append(self.infrastructure.UnitsOfLayer["Mobility"],'Public_transport'),self.infrastructure.UnitsOfType["EV_charger"]) if self.method['no_public_transport']==False else np.setdiff1d(self.infrastructure.UnitsOfLayer["Mobility"],self.infrastructure.UnitsOfType["EV_charger"])
+            p = EV_gen.generate_mobility_parameters(self.cluster,self.parameters,transportunits)
             MP_parameters.update(p)
 
         if read_DHN:
@@ -756,7 +756,7 @@ class MasterProblem:
                          }
 
         # find district structure, objective, beta and parameter for one single building
-        buildings_data_SP, parameters_SP = self.split_parameter_sets_per_building(h, parameters_SP)
+        buildings_data_SP, parameters_SP, set_indexed_SP = self.split_parameter_sets_per_building(h, parameters_SP)
 
         if 'EMOO_PV_lower' in scenario['EMOO'].keys():
             parameters_SP['PV_penalty'] = scenario['EMOO']['EMOO_PV_lower']
@@ -775,10 +775,10 @@ class MasterProblem:
     
         # Execute optimization
         if self.method['use_facades'] or self.method['use_pv_orientation']:
-            REHO = SubProblem(self.infrastructure_SP[h], buildings_data_SP, self.local_data, parameters_SP, self.set_indexed, self.cluster,
+            REHO = SubProblem(self.infrastructure_SP[h], buildings_data_SP, self.local_data, parameters_SP, set_indexed_SP, self.cluster,
                               scenario, self.method, self.solver, self.qbuildings_data)
         else:
-            REHO = SubProblem(self.infrastructure_SP[h], buildings_data_SP, self.local_data, parameters_SP, self.set_indexed, self.cluster,
+            REHO = SubProblem(self.infrastructure_SP[h], buildings_data_SP, self.local_data, parameters_SP, set_indexed_SP, self.cluster,
                               scenario, self.method, self.solver)
 
         ampl = REHO.build_model_without_solving()
@@ -1261,6 +1261,10 @@ class MasterProblem:
                     except:
                         parameters_SP[key] = self.parameters[key][ID]
 
+        for key in self.set_indexed:
+            if key not in self.lists_MP["list_set_indexed_MP"]:
+                set_indexed_SP[key] = self.set_indexed[key]
+
         # for key in self.parameters:
         #     if key not in self.lists_MP["list_parameters_MP"]:
         #         if isinstance(self.parameters[key], (int, float)):
@@ -1274,7 +1278,7 @@ class MasterProblem:
         #             parameters_SP[key] = self.parameters[key][ID]
 
         
-        return buildings_data_SP, parameters_SP
+        return buildings_data_SP, parameters_SP, set_indexed_SP
 
     def build_infrastructure_SP(self):
         for h in self.buildings_data:

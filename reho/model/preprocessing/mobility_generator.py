@@ -254,6 +254,31 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
 
     param_output['Mode_Speed'] = mode_speed.dropna()
 
+    # Select Units to use
+    param_output['Daily_Profile'] = param_output['Daily_Profile'][param_output['Daily_Profile'].index.get_level_values('u').isin(transportunits)]
+
+    if 'EV_district' not in transportunits:
+        del param_output['EV_charging_profile']
+        del param_output['EV_plugged_out']
+        del param_output['EV_activity']
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='EV_district']
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='EV'] # Dont't know if there is a difference between both, but remove both of them just in case
+
+    if 'EBike' not in transportunits:
+        del param_output['EBike_charging_profile']
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='EBike']
+    
+    if 'Bike' not in transportunits:
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='Bike']
+    
+    if 'ICE_district' not in transportunits:
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='ICE']
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='ICE_district'] # Dont't know if there is a difference between both, but remove both of them just in case
+    
+    if 'Public_transport' not in transportunits:
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='PT_train']
+        param_output['Mode_Speed'] = param_output['Mode_Speed'][param_output['Mode_Speed'].index!='PT_bus']
+
     return param_output
 
 

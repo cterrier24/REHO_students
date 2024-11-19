@@ -16,7 +16,7 @@ param HeatPump_install_Units_Mult{h in House} default 0;
 param T_source{u in UnitsOfType['HeatPump'], p in Period,t in Time[p]};
 
 #-T_HOT
-set HP_Tsink default {35,45,55};																	#deg C
+set HP_Tsink default {35,45,55,65};																	#deg C
 param HP_Tsink_high{h in House,p in Period,t in Time[p],T in HP_Tsupply} :=  						#deg C
 	if max{Th in HP_Tsink} Th <= T then
 		max{Th in HP_Tsink} Th

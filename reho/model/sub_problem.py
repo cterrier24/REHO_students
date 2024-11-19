@@ -756,10 +756,14 @@ def initialize_default_methods(method):
     if 'use_Storage_Interperiod' not in method:
         method['use_Storage_Interperiod'] = False
 
+    if 'no_public_transport' not in method:
+        method['no_public_transport'] = False
+        
     if method['building-scale']:
         method['include_all_solutions'] = False  # avoid interactions between optimization scenarios
         method[
             'district-scale'] = True  # building-scale approach is also using the decomposition algorithm, but with only 1 MP optimization (DW_params['max_iter'] = 1)
+
 
     return method
 

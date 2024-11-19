@@ -205,9 +205,9 @@ def df_sankey(df_Results, label='EN_long', color='ColorPastel', precision=2, uni
 
     # check if electricity storage
     elec_storage_use = False
-    for elec_storage in elec_storage_list:
-        if len(df_annuals.loc[(df_annuals['Layer'] == 'Electricity') & (df_annuals['Hub'] == elec_storage)]) != 0:
-            elec_storage_use = True
+    # for elec_storage in elec_storage_list:
+    #     if len(df_annuals.loc[(df_annuals['Layer'] == 'Electricity') & (df_annuals['Hub'] == elec_storage)]) != 0:
+    #         elec_storage_use = True
 
     # check if watertank SH
     watertank_sh = False
