@@ -95,17 +95,24 @@ param Units_Ext{u in Units} default 0;
 
 var Units_Mult{u in Units} <= Units_Fmax[u];
 var Units_Use{u in Units} binary, default 0;
-var Units_Use_Ext{u in Units} binary, default 0;
+var Units_Use_Ext{u in Units} binary, default 1;
+var Units_Buy{u in Units} binary, default 0;
 
 subject to Units_sizing_c1{u in Units}:
-Units_Mult[u]-Units_Ext[u] >= Units_Use[u]*Units_Fmin[u];
+Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u] >= Units_Buy[u]*Units_Fmin[u];
 
 subject to Units_sizing_c2{u in Units}:
-Units_Mult[u]-Units_Ext[u] <= Units_Use[u]*(Units_Fmax[u]-Units_Ext[u]);
+Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u] <= Units_Buy[u]*(Units_Fmax[u]-Units_Ext[u]);
 
+subject to Units_Use_constraint_c1{u in Units}:
+Units_Use[u]*Units_Fmax[u]>=Units_Mult[u];
+
+subject to Units_Use_constraint_c2{u in Units}:
+Units_Use[u]*Units_Fmin[u]<=Units_Mult[u];
 
 subject to no_2_heating_system{h in House}:
-sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['OIL_Boiler']: 'OIL_Boiler' in UnitTypes}(Units_Use_Ext[u])+sum{u in UnitsOfType['NG_Boiler']: 'NG_Boiler' in UnitTypes}(Units_Use_Ext[u]) <=1;
+sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Use[u])+sum{u in UnitsOfType['OIL_Boiler']: 'OIL_Boiler' in UnitTypes}(Units_Use[u])+sum{u in UnitsOfType['NG_Boiler']: 'NG_Boiler' in UnitTypes}(Units_Use[u])+sum{u in {'DHN_hex_in_'&h}:'DHN_hex_in_'&h in Units}(Units_Use[u]) <=1;
+
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
@@ -149,16 +156,6 @@ subject to MB_c1{h in House, l in ResourceBalances diff {'Electricity'}, hl in H
 subject to MB_c2{l in ResourceBalances,p in Period,t in Time[p]}:
 	 Network_demand[l,p,t] + sum{i in HousesOfLayer[l]}(Grid_supply[l,i,p,t]) -sum {b in UnitsOfDistrict inter UnitsOfLayer[l]} Units_supply[l,b,p,t] =
 	  Network_supply[l,p,t] + sum{j in HousesOfLayer[l]}(Grid_demand[l,j,p,t]) -sum {r in UnitsOfDistrict inter UnitsOfLayer[l]} Units_demand[l,r,p,t] ;
-
-param BigNumber default 1e9;
-subject to Units_Use_Ext_c1{u in Units}:
-Units_Use_Ext[u]*BigNumber >= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_demand[l,u,p,t]);
-
-subject to Units_Use_Ext_c2{u in Units}:
-Units_Use_Ext[u] <= sum{l in ResourceBalances,p in Period, t in Time[p]:u in UnitsOfLayer[l]}(Units_demand[l,u,p,t]);
-
-
-
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
@@ -290,7 +287,7 @@ subject to Annual_CO2_operation:
 GWP_op = sum{l in ResourceBalances, p in PeriodStandard,t in Time[p]}(GWP_supply[l,p,t]*Network_supply[l,p,t]-GWP_demand[l,p,t]*Network_demand[l,p,t]) *dp[p]*dt[p];
 
 subject to Annual_CO2_construction_unit{u in Units}:
-GWP_Unit_constr[u] = (Units_Use[u]*GWP_unit1[u] + (Units_Mult[u]-Units_Ext[u])*GWP_unit2[u])/lifetime[u];
+GWP_Unit_constr[u] = (Units_Buy[u]*GWP_unit1[u] + (Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u])*GWP_unit2[u])/lifetime[u];
 
 subject to Annual_CO2_construction_house{h in House}:
 GWP_house_constr[h] = sum{u in UnitsOfHouse[h]}(GWP_Unit_constr[u])+sum{l in ResourceBalances: h in HousesOfLayer[l]}(GWP_Line1[l]*Use_LineCapacity[l,h]+GWP_Line2[l]*(LineCapacity[l,h]-Line_Ext[h,l] * (1-Use_LineCapacity[l,h]))*Line_Length[h,l]/Line_Lifetime[h,l]);
@@ -315,7 +312,7 @@ subject to LU_op_cst{k in Lca_kpi, l in ResourceBalances}:
 lca_op[k, l] = sum{p in PeriodStandard,t in Time[p]}(lca_kpi_supply[k,l,p,t]*Network_supply[l,p,t] - lca_kpi_demand[k,l,p,t]*Network_demand[l,p,t]) *dp[p]*dt[p];
 
 subject to LU_inv_cst{k in Lca_kpi, u in Units}:
-lca_units[k, u] = (Units_Use[u]*lca_kpi_1[k, u] + (Units_Mult[u]-Units_Ext[u])*lca_kpi_2[k, u])/lifetime[u];
+lca_units[k, u] = (Units_Buy[u]*lca_kpi_1[k, u] + (Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u])*lca_kpi_2[k, u])/lifetime[u];
 
 subject to LU_tot_cst{k in Lca_kpi}:
 lca_tot[k] = sum{u in Units} lca_units[k, u] + sum{l in ResourceBalances} lca_op[k, l];
@@ -353,7 +350,7 @@ subject to line_additional_capacity_c2{l in ResourceBalances,hl in HousesOfLayer
 LineCapacity[l,hl]>=Line_Ext[hl,l];
 
 subject to Costs_Unit_capex{u in Units}:
-Costs_Unit_inv[u] = Units_Use[u]*Cost_inv1[u] + (Units_Mult[u]-Units_Ext[u])*Cost_inv2[u];
+Costs_Unit_inv[u] = Units_Buy[u]*Cost_inv1[u] + (Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u])*Cost_inv2[u];
 
 subject to Costs_House_capex{h in House}:
 Costs_House_inv[h] = sum{u in UnitsOfHouse[h]}(Costs_Unit_inv[u])+sum{l in ResourceBalances: h in HousesOfLayer[l]}(CostLine_inv1[h,l]*Use_LineCapacity[l,h]+CostLine_inv2[h,l]*(LineCapacity[l,h]-Line_Ext[h,l] * (1-Use_LineCapacity[l,h])));

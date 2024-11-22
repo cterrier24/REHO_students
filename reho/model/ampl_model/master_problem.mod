@@ -135,12 +135,20 @@ param Units_Ext{u in Units} default 0;
 
 var Units_Mult{u in Units} <= Units_Fmax[u];
 var Units_Use{u in Units} binary >= 0, default 0;
+var Units_Use_Ext{u in Units} binary >= 0, default 1;
+var Units_Buy{u in Units} binary >= 0, default 0;
 
 subject to Unit_sizing_c1{u in Units}:
-Units_Mult[u]-Units_Ext[u] >= Units_Use[u]*Units_Fmin[u];
+Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u] >= Units_Buy[u]*Units_Fmin[u];
 
 subject to Unit_sizing_c2{u in Units}:
-Units_Mult[u]-Units_Ext[u] <= Units_Use[u]*(Units_Fmax[u]-Units_Ext[u]);
+Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u] <= Units_Buy[u]*(Units_Fmax[u]-Units_Ext[u]);
+
+subject to Unit_Use_constraint_c1{u in Units}:
+Units_Use[u]*Units_Fmax[u]>=Units_Mult[u];
+
+subject to Unit_Use_constraint_c2{u in Units}:
+Units_Use[u]*Units_Fmin[u]<=Units_Mult[u];
 
 # PV constraint variable
 var PV_tot >= -1e-4;
@@ -155,7 +163,7 @@ var HP_tot >= -1e-4;
 
 # HP constraint
 subject to HP_installed:
-HP_tot = sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Mult[u])+sum{f in FeasibleSolutions, h in House}(HP_house_installed[f,h]*lambda[f,h]);
+HP_tot = sum{f in FeasibleSolutions, h in House}(HP_house_installed[f,h]*lambda[f,h]);#+sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Mult[u]);
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
@@ -233,7 +241,7 @@ subject to transformer_additional_capacity_c2{l in ResourceBalances}:
 TransformerCapacity[l]>=Transformer_Ext[l];
 
 subject to Costs_Unit_capex{u in Units diff {"DHN_pipes_district"}}:
-Costs_Unit_inv[u] = Units_Use[u]*Cost_inv1[u] + (Units_Mult[u]-Units_Ext[u])*Cost_inv2[u];
+Costs_Unit_inv[u] = Units_Buy[u]*Cost_inv1[u] + (Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u])*Cost_inv2[u];
 
 subject to Costs_Unit_replacement:
 Costs_rep= tau* sum{u in Units diff {"DHN_pipes_district"},n_rep in 1..(n_years/lifetime[u])-1 by 1}( (1/(1 + i_rate))^(n_rep*lifetime[u])*Costs_Unit_inv[u] );
@@ -274,7 +282,7 @@ var GWP_House_constr{h in House} >=0;
 var GWP_tot;
 
 subject to CO2_construction_unit{u in Units}:
-GWP_Unit_constr[u] = (Units_Use[u]*GWP_unit1[u] + (Units_Mult[u]-Units_Ext[u])*GWP_unit2[u])/lifetime[u];
+GWP_Unit_constr[u] = (Units_Buy[u]*GWP_unit1[u] + (Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u])*GWP_unit2[u])/lifetime[u];
 
 subject to CO2_construction_house{h in House}:
 GWP_House_constr[h] = sum{f in FeasibleSolutions}(lambda[f,h] * GWP_house_constr_SPs[f,h]);
@@ -318,7 +326,7 @@ var lca_tot{k in Lca_kpi} default 0;
 var lca_tot_house{k in Lca_kpi, h in House} default 0;
 
 subject to LU_inv_cst{k in Lca_kpi, u in Units}:
-lca_units[k, u] = (Units_Use[u]*lca_kpi_1[k, u] + (Units_Mult[u]-Units_Ext[u])*lca_kpi_2[k, u])/lifetime[u];
+lca_units[k, u] = (Units_Buy[u]*lca_kpi_1[k, u] + (Units_Mult[u]-Units_Use_Ext[u]*Units_Ext[u])*lca_kpi_2[k, u])/lifetime[u];
 
 subject to LCA_construction_house{k in Lca_kpi, h in House}:
 lca_house_units[k, h] = sum{f in FeasibleSolutions}(lambda[f,h] * lca_house_units_SPs[f,k,h]);

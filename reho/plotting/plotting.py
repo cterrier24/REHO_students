@@ -614,7 +614,7 @@ def plot_sankey(df_Results, label='EN_long', color='ColorPastel', title=None, fi
         ))])
 
     if title is not None:
-        fig.update_layout(title=title,font_size=18)
+        fig.update_layout(title=title,font_size=12)
 
     if filename is not None:
         if not os.path.isdir(os.path.dirname(filename)):

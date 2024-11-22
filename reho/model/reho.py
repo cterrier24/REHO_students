@@ -444,11 +444,10 @@ class REHO(MasterProblem):
 
         # EV
         if 'EV' in pathway_data.keys():
-            i_EV=(pathway_data['EV']['EV_share_2050']-pathway_data['EV']['EV_share_2024'])/(y_span[-1]-y_span[0])
-            self.parameters['Population']=np.round(pathway_data['EV']['factor_EV']*self.ERA*pathway_data['EV']['EV_share_2024'])
+            N_EV = np.array([np.round(np.interp(year,pathway_data['EV']['EV_year'],pathway_data['EV']['EV_share_pathway'])*pathway_data['EV']['factor_EV']*self.ERA) for year in y_span])
         else:
-            i_EV=0
-            self.parameters['Population']=0
+            N_EV=np.zeros(len(y_span))
+        self.parameters['Population']=N_EV[0]
 
         ########################
         #### Initialization ####
@@ -489,8 +488,7 @@ class REHO(MasterProblem):
                     self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[i]
 
             # Update the EVs
-            delta_year=y_span[i]-y_span[i-1]
-            self.parameters["Population"] = self.parameters["Population"]+np.round(i_EV*pathway_data['EV']['factor_EV']*self.ERA*delta_year)
+            self.parameters["Population"] = N_EV[i]
 
             # Update the renovation
             if 'renovation' in pathway_data.keys():
@@ -499,6 +497,10 @@ class REHO(MasterProblem):
                     if pathway_data['renovation'][i][j][0]!=0:
                         self.buildings_data[h]['U_h']=pathway_data['renovation'][i][j][0]
                     j+=1
+
+            # Update the DHN installation:
+            if 'DHN' in pathway_data.keys():
+                self.parameters['DHN_hex_in_install']=pathway_data['DHN'][i]
 
             # Update the existing units
             existing_units_current = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
@@ -539,11 +541,10 @@ class REHO(MasterProblem):
 
         # EV
         if 'EV' in pathway_data.keys():
-            i_EV=(pathway_data['EV']['EV_share_2050']-pathway_data['EV']['EV_share_2024'])/(y_span[-1]-y_span[0])
-            self.parameters['Population']=np.round(pathway_data['EV']['factor_EV']*self.ERA*pathway_data['EV']['EV_share_2024'])
+            N_EV = np.array([np.round(np.interp(year,pathway_data['EV']['EV_year'],pathway_data['EV']['EV_share_pathway'])*pathway_data['EV']['factor_EV']*self.ERA) for year in y_span])
         else:
-            i_EV=0
-            self.parameters['Population']=0
+            N_EV=np.zeros(len(y_span))
+        self.parameters['Population']=N_EV[0]
 
         ########################
         #### Initialization ####
@@ -566,14 +567,13 @@ class REHO(MasterProblem):
 
             # Update the constraints
             self.parameters['HeatPump_install']=pathway_data['EMOO']['HeatPump']['Units_Use'][i]
-            self.parameters['HeatPump_install_Units_Mult']=pathway_data['EMOO']['HeatPump']['Units_Mult'][i]
+            #self.parameters['HeatPump_install_Units_Mult']=pathway_data['EMOO']['HeatPump']['Units_Mult'][i]
 
             self.parameters['PV_install']=pathway_data['EMOO']['PV']['Units_Use'][i]
             self.parameters['PV_install_Units_Mult']=pathway_data['EMOO']['PV']['Units_Mult'][i]
 
             # Update the EVs
-            delta_year=y_span[i]-y_span[i-1]
-            self.parameters["Population"] = self.parameters["Population"]+np.round(i_EV*pathway_data['EV']['factor_EV']*self.ERA*delta_year)
+            self.parameters["Population"] = N_EV[i]
 
             # Update the renovation
             if 'renovation' in pathway_data.keys():
@@ -583,6 +583,10 @@ class REHO(MasterProblem):
                         self.buildings_data[h]['U_h']=pathway_data['renovation'][i][j][0]
                     j+=1
             
+            # Update the DHN installation:
+            if 'DHN' in pathway_data.keys():
+                self.parameters['DHN_hex_in_install']=pathway_data['DHN'][i]
+
             # Update the existing units
             existing_units_current = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
             existing_units = pd.DataFrame(columns=['Units_Mult'],index=self.infrastructure.Units).rename_axis(index='Unit')
@@ -673,10 +677,13 @@ class REHO(MasterProblem):
     def select_values_random(self,values, initial_selection, steps):
         EMOO_data = {}
         EMOO_bool = {}
-
+        EMOO_bool_tot = {}
+        random.seed(42)
+        
         j=0
         bool_selection=initial_selection
         EMOO_bool[j]=np.array([[i] for i in bool_selection])
+        EMOO_bool_tot[j]=EMOO_bool[j]
         EMOO_data[j]=np.array([[i] for i in np.array(values)*np.array(bool_selection)])
         previous_step = steps[0]
         position_list=[i for i in np.array(range(len(values))) if np.array(bool_selection)[i]==0]
@@ -690,9 +697,10 @@ class REHO(MasterProblem):
             bool_selection = np.array(bool_selection)+np.array([1 if i in position_selection else 0 for i in range(len(values))])
             position_list = [i for i in np.array(range(len(values))) if np.array(bool_selection)[i]==0]
             EMOO_bool[j] = np.array([[ii] for ii in [1 if i in position_selection else 0 for i in range(len(values))]])
+            EMOO_bool_tot[j] = np.array([[1 if i!=0 else 0] for i in np.array(values)*np.array(bool_selection)])
             EMOO_data[j] = np.array([[i] for i in np.array(values)*np.array(bool_selection)]) 
             previous_step = step
-        return EMOO_data,EMOO_bool        
+        return EMOO_data,EMOO_bool, EMOO_bool_tot        
 
     def get_battery_pathway_from_EV(self,N_EV_start=0,N_EV_stop=15,c_EV=2039,k_EV=1,y_start=2024,y_stop=2050,n=7,EV_battery_lifetime=10,battery_reuse_lifetime=10,EV_battery_capacity=70,EV_battery_degradation_factor=0.7):
 
