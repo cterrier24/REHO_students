@@ -433,6 +433,7 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
 
 
 def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_DHN=False, scenario={}):
+    tau = ampl.getParameter('tau').getValues().toList()
     df_Results = dict()
 
     # Dantzig Wolfe algorithm
