@@ -91,7 +91,7 @@ class MasterProblem:
         if parameters is None:
             self.parameters = {}
         else:
-            self.parameters = parameters
+            self.parameters = copy.deepcopy(parameters)
 
         # build end use demands profile
         self.parameters['HeatGains'], self.parameters['DHW_flowrate'], self.parameters['Domestic_electricity'] = \

@@ -625,17 +625,20 @@ class REHO(MasterProblem):
     def get_logistic(self,E_start=1e-2,E_stop=1e-3,y_start=2024,y_stop=2050,k=1,c=2035,n=2, final_value=False,starting_value=True):
         # Create a logistic curve 
         #k must be always positive, and c must be always between y_start and y_stop
-        y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
-        EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
-        if starting_value is True:
-            diff_start=E_start
+        y_span=np.linspace(start=y_start,stop=y_stop,num=n,endpoint=True)
+        if E_start==E_stop:
+            EMOO_list=[E_start for key in y_span]
         else:
-            diff_start=EMOO_list[0]
-        if final_value is True:
-            diff_stop=E_stop
-        else:
-            diff_stop=EMOO_list[-1]
-        EMOO_list=(EMOO_list-EMOO_list[0])*(diff_stop-diff_start)/(EMOO_list[-1]-EMOO_list[0])+diff_start# Stretching the curve
+            EMOO_list=E_stop+(E_start-E_stop)/(1+np.exp(-k*(c-y_span)))
+            if starting_value is True:
+                diff_start=E_start
+            else:
+                diff_start=EMOO_list[0]
+            if final_value is True:
+                diff_stop=E_stop
+            else:
+                diff_stop=EMOO_list[-1]
+            EMOO_list=(EMOO_list-EMOO_list[0])*(diff_stop-diff_start)/(EMOO_list[-1]-EMOO_list[0])+diff_start# Stretching the curve
         return EMOO_list,y_span
     
     def get_logistic_partial(self,E_start=0,E_stop=1,y_start=2024,y_stop=2050,k=0.1,y=2024,E=0.6,n=5,final_value=False):
@@ -643,7 +646,7 @@ class REHO(MasterProblem):
         # Since a measure is taken (y,E), the number of parameters to select is reduced by one. This means, instead of selecting k and c, you only select k: c is deduced from the measure (y,E). 
 
         # Create year steps       
-        y_span=np.linspace(start=y_start,stop=y_stop,num=n+1,endpoint=True)[1:]
+        y_span=np.linspace(start=y_start,stop=y_stop,num=n,endpoint=True)
 
         # Check if flat curve
         if E_start==E_stop:
