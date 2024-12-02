@@ -169,6 +169,7 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
         return df_Unit, df_Unit_t
 
     def set_df_grid_SP(ampl):
+        tau = ampl.getParameter('tau').getValues().toList()
         df1 = get_ampl_data(ampl, 'LineCapacity', multi_index=True)
         df2 = get_ampl_data(ampl, 'Use_LineCapacity', multi_index=True)
         df3 = get_ampl_data(ampl, 'CostLine_inv1',multi_index=True)
@@ -188,7 +189,7 @@ def get_df_Results_from_SP(ampl, scenario, method, buildings_data, filter=True):
         df_12.columns = ['Capacity', 'UseCapacity']
         df_12.index.names = ['Layer', 'Hub']
         df_Grid = df_12.swaplevel().sort_index()
-        df_Grid['ReinforcementCost'] = df_Grid['UseCapacity'] * df3['CostLine_inv1']+(df_Grid['Capacity'] -df7['Line_Ext']*(1-df_Grid['UseCapacity']))*df4['CostLine_inv2']#*df8['Line_Length'] # removed the multiplication per line_length for the cost, because an associated cost for each line has been estimated
+        df_Grid['ReinforcementCost'] = tau[0]*df_Grid['UseCapacity'] * df3['CostLine_inv1']+(df_Grid['Capacity'] -df7['Line_Ext']*(1-df_Grid['UseCapacity']))*df4['CostLine_inv2']#*df8['Line_Length'] # removed the multiplication per line_length for the cost, because an associated cost for each line has been estimated
         df_Grid['ReinforcementGWP'] = df_Grid['UseCapacity'] * df5['GWP_Line1'] + (df_Grid['Capacity']-df7['Line_Ext']*(1-df_Grid['UseCapacity']))*df6['GWP_Line2']*df8['Line_Length']
         return df_Grid
 
@@ -482,7 +483,7 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
     df12['Hub']='Network'
     df12.set_index('Hub', append=True, inplace=True)
     df_Grid=df12.swaplevel().sort_index()
-    df_Grid['ReinforcementCost'] = df_Grid['UseCapacity'] * df3['CostTransformer_inv1'] + (df_Grid['Capacity']-df7['Transformer_Ext']*(1-df_Grid['UseCapacity'])) * df4['CostTransformer_inv2']
+    df_Grid['ReinforcementCost'] = tau[0]*df_Grid['UseCapacity'] * df3['CostTransformer_inv1'] + (df_Grid['Capacity']-df7['Transformer_Ext']*(1-df_Grid['UseCapacity'])) * df4['CostTransformer_inv2']
     df_Grid['ReinforcementGWP'] = df_Grid['UseCapacity'] * df5['GWP_Transformer1'] + (df_Grid['Capacity']-df7['Transformer_Ext']*(1-df_Grid['UseCapacity'])) * df6['GWP_Transformer2']
 
     df_Results['df_Grid'] = df_Grid
