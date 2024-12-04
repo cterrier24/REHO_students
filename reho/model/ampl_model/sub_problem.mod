@@ -113,8 +113,9 @@ Units_Use[u]*Units_Fmin[u]<=Units_Mult[u];
 subject to no_2_heating_system{h in House}:
 sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Use[u])+sum{u in UnitsOfType['OIL_Boiler']: 'OIL_Boiler' in UnitTypes}(Units_Use[u])+sum{u in UnitsOfType['NG_Boiler']: 'NG_Boiler' in UnitTypes}(Units_Use[u])+sum{u in {'DHN_hex_in_'&h}:'DHN_hex_in_'&h in Units}(Units_Use[u]) <=1;
 
-subject to enforce_use_heatpump_if_existing{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}:
-Units_Use_Ext[u]=1;
+param keep_HeatPump{h in House} default 0;
+subject to enforce_use_heatpump_if_existing{h in House}:
+sum{u in UnitsOfType['HeatPump']: 'HeatPump' in UnitTypes}(Units_Use_Ext[u])>=keep_HeatPump[h];
 
 ######################################################################################################################
 #--------------------------------------------------------------------------------------------------------------------#
