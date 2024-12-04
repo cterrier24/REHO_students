@@ -466,7 +466,7 @@ param HP_penalty default 0;
 var penalties default 0;
 
 subject to penalties_contraints:
-penalties = PV_penalty*PV_tot + HP_penalty*HP_tot + penalty_ratio * (Costs_inv + Costs_op + sum{k in Lca_kpi} lca_tot[k] +
+penalties = PV_penalty*EMOO_slack_pv_lower + HP_penalty*EMOO_slack_hp_lower + penalty_ratio * (Costs_inv + Costs_op + sum{k in Lca_kpi} lca_tot[k] +
             sum{l in ResourceBalances,p in PeriodExtreme,t in Time[p]} (Network_supply[l,p,t] + Network_demand[l,p,t]) );
 
 #--------------------------------------------------------------------------------------------------------------------#

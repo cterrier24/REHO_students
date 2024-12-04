@@ -152,3 +152,7 @@ HouseSurfaceArea[h,s] = ( sum{ (az,ti) in ConfigOfSurface[s]}  PVA_module_covera
 
 subject to enforce_PV_max_fac{h in House, s in SurfaceOfHouse[h] inter SurfaceOfType['Facades'] ,u in UnitsOfType['PV'] inter UnitsOfHouse[h]}:
 HouseSurfaceArea[h,s] = ( sum{ (az,ti) in ConfigOfSurface[s]}  PVA_module_coverage[h,u,s,az,ti]*PVA_module_nbr[h,s, az,ti,u]);
+
+
+# subject to max_curtailment{h in House, u in UnitsOfType['PV'] inter UnitsOfHouse[h]}:
+# sum{p in Period, t in Time[p]}(Units_curtailment['Electricity', u, p,t])<= 0.05*sum {s in SurfaceOfHouse[h], (az,ti)  in ConfigOfSurface[s], p in Period, t in Time} (PV_electricity[h,u,s,az,ti,p,t]);
