@@ -510,6 +510,11 @@ class MasterProblem:
                     MP_parameters[key2] = self.parameters[key]
                 else:
                     MP_parameters[key] = self.parameters[key]
+                    
+        if "Cost_supply_network" in self.parameters.keys():
+            MP_parameters["Cost_supply_network"] = self.parameters["Cost_supply_network"][0]
+        if "Cost_demand_network" in self.parameters.keys():
+            MP_parameters["Cost_demand_network"] = self.parameters["Cost_demand_network"][0]
 
         if 'EMOO_PV_lower' in self.scenario['EMOO'].keys():
             MP_parameters['PV_penalty'] = 1000

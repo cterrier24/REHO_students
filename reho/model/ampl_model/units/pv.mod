@@ -19,6 +19,8 @@ param PVA_F{u in UnitsOfType['PV']} default 0.9;					#- 		[1]
 param PVA_temperature_ref{u in UnitsOfType['PV']} default 298;		#K 		[1]
 param PVA_efficiency_ref{u in UnitsOfType['PV']} default 0.2;		#- 		[1]
 param PVA_efficiency_var{u in UnitsOfType['PV']} default 0.0012;	#- 		[1]
+
+param curtailment_max_perc default 1;
 																									
 param PVA_temperature{u in UnitsOfType['PV'],p in Period,t in Time[p]} :=
 	(PVA_U_h[u]*(T_ext[p,t]+273.15))/(PVA_U_h[u] - PVA_efficiency_var[u]*I_global[p,t]) +
@@ -50,4 +52,8 @@ sum{uj in UnitsOfType['PV'] inter UnitsOfHouse[h]}(Units_Buy[uj]) = PV_install[h
 
 subject to enforce_PV_Units_Mult{h in House}:
 sum{uj in UnitsOfType['PV'] inter UnitsOfHouse[h]}(Units_Mult[uj]) = PV_install_Units_Mult[h];
+
+subject to max_curtailment{h in House, u in UnitsOfType['PV'] inter UnitsOfHouse[h]}:
+sum{p in Period, t in Time[p]}(Units_curtailment['Electricity', u, p,t])<=sum{p in Period, t in Time[p]}(curtailment_max_perc*PVA_inverter_eff[u]*PVA_efficiency[u,p,t]*(I_global[p,t]/1000)*(Units_Mult[u]/PVA_efficiency_ref[u]))
+
 
