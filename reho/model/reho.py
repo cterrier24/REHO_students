@@ -419,7 +419,7 @@ class REHO(MasterProblem):
         self.infrastructure = infrastructure.Infrastructure(buildings,  units, self.infrastructure.grids)
 
 
-    def pathway(self,pathway_data={"y_span":None,'EMOO':{"GWP":[[0,0,0]]}},existing_init=None):
+    def pathway(self,pathway_data={"y_span":None,'EMOO':{"GWP":[[0,0,0]]}},df_HP_init=None,df_HP_tot=None,existing_init=None):
         # This function computes a myopic pathway, constrained by the list of EMOO constrains on a given set of period y_span
 
         # Get the scenario name
@@ -487,6 +487,7 @@ class REHO(MasterProblem):
                 else:
                     self.scenario['EMOO']['EMOO_'+EMOO_type]=EMOO_list[i]
 
+
             # Update the EVs
             self.parameters["Population"] = N_EV[i]
 
@@ -504,6 +505,17 @@ class REHO(MasterProblem):
 
             # Update the existing units
             existing_units_current = self.results[Scn_ID][i - 1]['df_Unit'][['Units_Mult']]
+
+            # Modify HP existing units. The problem is that if a heat pump is installed and then the building is renovated, the heatpump is too large and therefore the HP installation constraint is fulfilled.
+            #  But still there could be oil boilers at some place. The idea is to replace the installed heat pump by a smaller one when the building is renovated. This is just a dirty fix, working only for this case 
+            if df_HP_init is not None:
+                jj=0
+                for h in self.infrastructure.House:
+                    if pathway_data['renovation'][i][jj]!=pathway_data['renovation'][i-1][jj]:
+                        if existing_units_current.loc['HeatPump_Air_'+h]['Units_Mult']!=0 and h not in df_HP_init.index:
+                            existing_units_current.loc['HeatPump_Air_'+h,'Units_Mult']=df_HP_tot.loc[h]['Units_Mult']
+                    jj+=1
+
             existing_units = pd.DataFrame(columns=['Units_Mult'],index=self.infrastructure.Units).rename_axis(index='Unit')
             existing_units['Units_Mult'] = existing_units.reset_index().apply(lambda x: existing_units_current.loc[x['Unit']]['Units_Mult'] if x['Unit'] in existing_units_current.index else 0, axis=1).values
             self.parameters["Units_Ext"] = np.array([existing_units[existing_units.index.map(lambda x: h in x)].loc[[s for s in self.infrastructure.Units if h==s.split('_')[-1]]]['Units_Mult'].to_list() for id, h in enumerate(self.infrastructure.houses)])

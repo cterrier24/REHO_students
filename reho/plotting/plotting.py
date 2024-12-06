@@ -562,7 +562,7 @@ def plot_expenses(results, plot='costs', indexed_on='Scn_ID', label='EN_long', p
         return fig
 
 
-def plot_sankey(df_Results, label='EN_long', color='ColorPastel', title=None, filename=None, export_format='html', scaling_factor=1, return_df=False):
+def plot_sankey(df_Results, label='EN_long', color='ColorPastel', title=None, filename=None, export_format='html', scaling_factor=1, return_df=False,fontsize=12):
     """
     Plots a Sankey plot based on the results DataFrame.
 
@@ -614,7 +614,7 @@ def plot_sankey(df_Results, label='EN_long', color='ColorPastel', title=None, fi
         ))])
 
     if title is not None:
-        fig.update_layout(title=title,font_size=12)
+        fig.update_layout(title=title,font_size=fontsize)
 
     if filename is not None:
         if not os.path.isdir(os.path.dirname(filename)):
