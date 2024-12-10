@@ -2,9 +2,9 @@ from reho.paths import *
 import reho.model.preprocessing.weather as weather
 import pandas as pd
 import numpy as np
+from scripts.examples.mobility_sector_PT_6a import transformer
 
-
-def generate_mobility_parameters(cluster, parameters,transportunits):
+def generate_mobility_parameters(cluster, parameters, transportunits):
     """
     This reads the input data on the file dailyprofiles.csv and initializes (almost) all the necessary parameters to run the mobility sector in REHO.
 
@@ -41,6 +41,7 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
     # Periods
     # TODO IMPLEMENTATION of flexible period duration
     File_ID = weather.get_cluster_file_ID(cluster)
+    #print("File_ID", File_ID)
 
     if 'W' in File_ID.split('_'):
         use_weekdays = True
@@ -65,6 +66,8 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
     share_input = pd.read_csv(os.path.join(path_to_mobility, "modalshares.csv"), index_col=0)
     units = pd.read_csv(os.path.join(path_to_infrastructure, "district_units.csv"),sep = ";")
     units = units[units.Unit.isin(transportunits)]
+    PT_profiles = pd.read_csv(os.path.join(path_to_mobility, f"PT_profiles/{transformer}_PT.csv"), index_col=0)
+    PT_traffic = pd.read_csv(os.path.join(path_to_mobility, f"PT_traffic/{transformer}_PT_traffic.csv"), index_col=0)
 
     # Domestic demand ================================================================================================
     # The labels look like this : demwdy_def, demwdy_long => normalized mobility demand of a weekday 
@@ -136,7 +139,7 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
         profile = profiles_input.loc[:, profiles_input.columns.str.contains(f"prf{days_mapping[day]}")].copy()
         profile = profile.multiply(dd_filter.iloc[:,0],axis = 'index')
         profile.columns = [x.split('_')[0] + "_district" for x in profile.columns]
-        missing_units = set(transportunits) - set(profile.columns) - {'Public_transport'}
+        missing_units = set(transportunits) - set(profile.columns) - {'ElectricBus_district','TrolleyBus_district','DieselBus_district','Metro_district','PT_bus','PT_metro'}
         for unit in missing_units:
             profile[unit] = dd  # fill missing series with the period demand profile
 
@@ -162,9 +165,17 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
     EV_charging_profile = pd.DataFrame(columns=['u', 'p', 't', 'EV_charging_profile'])
     activity_profile = pd.DataFrame(columns=['a', 'u', 'p', 't', 'EV_activity'])
     EBike_charging_profile = pd.DataFrame(columns=['u', 'p', 't', 'EBike_charging_profile'])
+    Bus_demand_profile = pd.DataFrame(columns=['u', 'p', 't', 'Bus_demand_profile'])
+    Metro_demand_profile = pd.DataFrame(columns=['u', 'p', 't', 'Metro_demand_profile'])
+    Bus_traffic_profile = pd.DataFrame(columns=['u', 'p', 't', 'Bus_traffic_profile'])
+    Metro_traffic_profile = pd.DataFrame(columns=['u', 'p', 't', 'Metro_traffic_profile'])
 
     EV_units = list(units[units.UnitOfType == "EV"][['Unit','UnitOfType']].Unit)
+    #print("EV_units = ", EV_units)
     EBike_units = list(units[units.UnitOfType == "EBike"][['Unit','UnitOfType']].Unit)
+    #print("EBike_units = ", EBike_units)
+    Bus_units = list(set(units[units.UnitOfType == "PT_bus"].UnitOfType))
+    Metro_units = list(set(units[units.UnitOfType == "PT_metro"].UnitOfType))
 
     # iter over the typical periods 
     for j, day in enumerate(list(timestamp.Weekday)[:-2]):
@@ -248,6 +259,64 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
 
         EBike_charging_profile = pd.concat([EBike_charging_profile, cpf])
 
+        # BUS PT
+        buspf = PT_profiles.loc[:,PT_profiles.columns.str.contains("bus")].copy()
+        buspf['PT_bus'] = buspf[f'{transformer}_bus']
+        buspf = buspf[Bus_units]
+
+        buspf.index.name = 't'
+        buspf.columns.name = 'u'
+        buspf = buspf.stack().to_frame(name="Bus_demand_profile")
+        buspf.reset_index(inplace=True)
+        buspf['p'] = j + 1
+        buspf['t'] += 1
+
+        Bus_demand_profile = pd.concat([Bus_demand_profile, buspf])
+
+        # METRO PT
+        metropf = PT_profiles.loc[:,PT_profiles.columns.str.contains("metro")].copy()
+        metropf['PT_metro'] = metropf[f'{transformer}_metro']
+        metropf = metropf[Metro_units]
+
+        metropf.index.name = 't'
+        metropf.columns.name = 'u'
+        metropf = metropf.stack().to_frame(name="Metro_demand_profile")
+        metropf.reset_index(inplace=True)
+        metropf['p'] = j + 1
+        metropf['t'] += 1
+
+        Metro_demand_profile = pd.concat([Metro_demand_profile, metropf])
+
+        # BUS traffic
+        bustraff = PT_traffic.loc[:,PT_traffic.columns.str.contains("bus")].copy()
+        bustraff['PT_bus'] = bustraff[f'{transformer}_bus']
+        bustraff = bustraff[Bus_units]
+
+        bustraff.index.name = 't'
+        bustraff.columns.name = 'u'
+        bustraff = bustraff.stack().to_frame(name="Bus_traffic_profile")
+        bustraff.reset_index(inplace=True)
+        bustraff['p'] = j + 1
+        bustraff['t'] += 1
+
+        Bus_traffic_profile = pd.concat([Bus_traffic_profile, bustraff])
+
+
+        # METRO traffic
+        metrotraff = PT_traffic.loc[:,PT_traffic.columns.str.contains("metro")].copy()
+        metrotraff['PT_metro'] = metrotraff[f'{transformer}_metro']
+        metrotraff = metrotraff[Metro_units]
+
+        metrotraff.index.name = 't'
+        metrotraff.columns.name = 'u'
+        metrotraff = metrotraff.stack().to_frame(name="Metro_traffic_profile")
+        metrotraff.reset_index(inplace=True)
+        metrotraff['p'] = j + 1
+        metrotraff['t'] += 1
+
+        Metro_traffic_profile = pd.concat([Metro_traffic_profile, metrotraff])
+
+
 
     # extreme hours
     aaa = pd.DataFrame({"u": EV_charging_profile.u.unique(),"p": 11, "t": 1, "EV_charging_profile": 0},index=[f"{x}1" for x in EV_charging_profile.u.unique()])
@@ -255,6 +324,20 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
     EV_charging_profile = pd.concat([EV_charging_profile, pd.DataFrame({"u" : EV_charging_profile.u.unique(),"p": 12, "t": 1, "EV_charging_profile": 0},index=[[f"{x}2" for x in EV_charging_profile.u.unique()]])])
     EV_plugged_out =  pd.concat([EV_plugged_out, pd.DataFrame({"u" : EV_plugged_out.u.unique(),"p": 11, "t": 1, "EV_plugged_out": 0},index=[[f"{x}1" for x in EV_plugged_out.u.unique()]])])
     EV_plugged_out = pd.concat([EV_plugged_out, pd.DataFrame({"u" : EV_plugged_out.u.unique(),"p": 12, "t": 1, "EV_plugged_out": 0},index=[[f"{x}2" for x in EV_plugged_out.u.unique()]])])
+    Bus_demand_profile = pd.concat([Bus_demand_profile, pd.DataFrame({"u" : Bus_demand_profile.u.unique(), "p" : 11, "t" : 1, "Bus_demand_profile" : 0}, index=[[f"{x}1" for x in Bus_demand_profile.u.unique()]])])
+    Bus_demand_profile = pd.concat([Bus_demand_profile, pd.DataFrame({"u" : Bus_demand_profile.u.unique(), "p" : 12, "t" : 1, "Bus_demand_profile" : 0}, index=[[f"{x}2" for x in Bus_demand_profile.u.unique()]])])
+    Metro_demand_profile = pd.concat([Metro_demand_profile, pd.DataFrame({"u" : Metro_demand_profile.u.unique(), "p" : 11, "t" : 1, "Metro_demand_profile" : 0}, index=[[f"{x}1" for x in Metro_demand_profile.u.unique()]])])
+    Metro_demand_profile = pd.concat([Metro_demand_profile, pd.DataFrame({"u" : Metro_demand_profile.u.unique(), "p" : 12, "t" : 1, "Metro_demand_profile" : 0}, index=[[f"{x}2" for x in Metro_demand_profile.u.unique()]])])
+    Bus_traffic_profile = pd.concat([Bus_traffic_profile, pd.DataFrame({"u" : Bus_traffic_profile.u.unique(), "p" : 11, "t" : 1, "Bus_traffic_profile" : 0}, index=[[f"{x}1" for x in Bus_traffic_profile.u.unique()]])])
+    Bus_traffic_profile = pd.concat([Bus_traffic_profile, pd.DataFrame({"u" : Bus_traffic_profile.u.unique(), "p" : 12, "t" : 1, "Bus_traffic_profile" : 0}, index=[[f"{x}2" for x in Bus_traffic_profile.u.unique()]])])
+    Metro_traffic_profile = pd.concat([Metro_traffic_profile, pd.DataFrame({"u" : Metro_traffic_profile.u.unique(), "p" : 11, "t" : 1, "Metro_traffic_profile" : 0}, index=[[f"{x}1" for x in Metro_traffic_profile.u.unique()]])])
+    Metro_traffic_profile = pd.concat([Metro_traffic_profile, pd.DataFrame({"u" : Metro_traffic_profile.u.unique(), "p" : 12, "t" : 1, "Metro_traffic_profile" : 0}, index=[[f"{x}2" for x in Metro_traffic_profile.u.unique()]])])
+
+    # drop 'u' column
+    Bus_demand_profile.drop('u', axis=1, inplace=True)
+    Metro_demand_profile.drop('u', axis=1, inplace=True)
+    Bus_traffic_profile.drop('u', axis=1, inplace=True)
+    Metro_traffic_profile.drop('u', axis=1, inplace=True)
     
 
     EV_charging_profile.set_index(['u', 'p', 't'], inplace=True)
@@ -269,9 +352,21 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
     EBike_charging_profile.set_index(['u', 'p', 't'], inplace=True)
     param_output['EBike_charging_profile'] = EBike_charging_profile
 
+    Bus_demand_profile.set_index(['p','t'], inplace=True)
+    param_output['Bus_demand_profile'] = Bus_demand_profile
+
+    Metro_demand_profile.set_index(['p','t'], inplace=True)
+    param_output['Metro_demand_profile'] = Metro_demand_profile
+
+    Bus_traffic_profile.set_index(['p','t'], inplace=True)
+    param_output['Bus_traffic_profile'] = Bus_traffic_profile
+
+    Metro_traffic_profile.set_index(['p','t'], inplace=True)
+    param_output['Metro_traffic_profile'] = Metro_traffic_profile
+
     # Mode_Speed =======================================================================================================
-    default_speed = pd.DataFrame({ "UnitOfType" : ['Bike','EV','ICE','PT_train','PT_bus',"EBike"],
-                                   "Mode_Speed" : [13.3,37,37,60,18,17]})
+    default_speed = pd.DataFrame({ "UnitOfType" : ['Bike','EV','ICE','PT_bus','PT_metro','EBike'],  #PT_train enlevé
+                                   "Mode_Speed" : [13.3,37,37,18,30,17]})  # PT_metro = 30, PT_train = 60
 
     mode_speed = units[['Unit','UnitOfType']].copy()
     mode_speed = mode_speed.merge(default_speed, how = 'outer')
@@ -291,7 +386,7 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
     minshare.columns = [x.split('_')[1] for x in minshare.columns]
 
     minshare.columns.name = "dist"
-    minshare = minshare.join(pd.DataFrame(index = modes + list(transportunits)),how = 'outer').fillna(0)
+    #minshare = minshare.join(pd.DataFrame(index = modes + list(transportunits)),how = 'outer').fillna(0)   cf. comment du join pour maxshare ci-dessous pour explication
     minshare = minshare.stack()
     minshare_modes = minshare[minshare.index.get_level_values(0).isin(modes)]
     minshare = minshare[minshare.index.get_level_values(0).isin(transportunits)]
@@ -305,7 +400,7 @@ def generate_mobility_parameters(cluster, parameters,transportunits):
     maxshare.columns = [x.split('_')[1] for x in maxshare.columns]
 
     maxshare.columns.name = "dist"
-    maxshare = maxshare.join(pd.DataFrame(index = modes + list(transportunits)),how = 'outer').fillna(1)
+    #maxshare = maxshare.join(pd.DataFrame(index = modes + list(transportunits)),how = 'outer').fillna(1)  on supprime car on veut éviter que les nouvelles units des PT apparaissent pour garder juste celles de PT_bus et PT_metro du csv dans les shares
     maxshare = maxshare.stack()
     maxshare_modes = maxshare[maxshare.index.get_level_values(0).isin(modes)]
     maxshare = maxshare[maxshare.index.get_level_values(0).isin(transportunits)]
@@ -348,11 +443,14 @@ def generate_transport_units_sets(transportunits):
     for key in soft_mobility_UnitofType_all:
         if key in transportunits.keys():
             transport_Units_MD = transport_Units_MD + list(transportunits[key])
+    #print(transport_Units_MD)
 
     transport_Units_cars = list()
     for key in cars_UnitofType_all:
         if key in transportunits.keys():
             transport_Units_cars = transport_Units_cars + list(transportunits[key])
+    #print(transport_Units_cars)
+    #print(transportunits)
 
     transport_Units_cars = np.array(transport_Units_cars)
     transport_Units_MD = np.array(transport_Units_MD)

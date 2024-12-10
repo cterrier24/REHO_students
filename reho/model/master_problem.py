@@ -120,7 +120,8 @@ class MasterProblem:
                                                 "area_district", "velocity", "density", "delta_enthalpy", "cinv1_dhn", "cinv2_dhn","Population","transport_Units",
                                                 "DailyDist","Mode_Speed","Cost_demand_ext","EV_charger_supply_ext","share_activity","Cost_supply_ext",
                                                 "max_share", "min_share","max_share_modes", "min_share_modes" ,  "n_ICEperhab",
-                                                 "CostTransformer_inv1", "CostTransformer_inv2", "GWP_Transformer1", "GWP_Transformer2","Units_Ext_district","Transformer_Lifetime"],
+                                                "CostTransformer_inv1", "CostTransformer_inv2", "GWP_Transformer1", "GWP_Transformer2","Units_Ext_district","Transformer_Lifetime",
+                                                "Bus_demand_profile", "Metro_demand_profile"],
                          "list_constraints_MP": [],
                          "list_set_indexed_MP" : ["Districts","Distances"]
                          }
@@ -237,8 +238,9 @@ class MasterProblem:
                 # to run multiprocesses, a copy of the model is performed with pickles -> make sure there are no ampl libraries
                 results = {h: self.pool.apply_async(self.SP_initiation_execution, args=(scenario, Scn_ID, Pareto_ID, h, epsilon_init, beta)) for h in
                            self.infrastructure.houses}
+                #print("results", results)
 
-                # sometimes, python goes to fast and extract the results before calculating them. This step makes python wait finishing the calculations
+                # sometimes, python goes too fast and extract the results before calculating them. This step makes python wait finishing the calculations
                 while len(results[list(self.buildings_data.keys())[-1]].get()) != 2:
                     time.sleep(1)
 
@@ -379,7 +381,7 @@ class MasterProblem:
             ampl_MP.setOption('solver_msg', 0)
 
         # -SOLVER OPTIONS
-        ampl_MP.setOption('solver',os.path.join(os.environ["AMPL_PATH"],f"{self.solver}.exe"))
+        ampl_MP.setOption('solver',os.path.join(os.environ["AMPL_PATH"],f"{self.solver}"))          # il fallait vier le .exe à la fin pour que ça marche
         if self.solver == "gurobi":
             ampl_MP.eval("option gurobi_options 'NodeFileStart=0.5';")
         if self.solver == "cplex":
@@ -409,6 +411,8 @@ class MasterProblem:
                 ampl_MP.read('electricbike.mod')
             if "ICE_district" in self.infrastructure.UnitsOfDistrict:
                 ampl_MP.read('icevehicle.mod')
+            if "TrolleyBus_district" or "ElectricBus_district" or "DieselBus_district" or "Metro_district" in self.infrastructure.UnitsOfDistrict:
+                ampl_MP.read('PT.mod')
             if "NG_Boiler_district" in self.infrastructure.UnitsOfDistrict:
                 ampl_MP.read('ng_boiler_district.mod')
             if "HeatPump_Geothermal_district" in self.infrastructure.UnitsOfDistrict:
@@ -484,7 +488,7 @@ class MasterProblem:
 
         if "Mobility" in self.infrastructure.UnitsOfLayer:
             p = EV_gen.generate_mobility_parameters(self.cluster,self.parameters,
-                                                    np.setdiff1d(np.append(self.infrastructure.UnitsOfLayer["Mobility"],['PT_train',"PT_bus"]),self.infrastructure.UnitsOfType["EV_charger"]))
+                                                    np.setdiff1d(np.append(self.infrastructure.UnitsOfLayer["Mobility"],['PT_bus','PT_metro']),self.infrastructure.UnitsOfType["EV_charger"]))   #PT_train enlevé, on garde PT_bus et metro dans le append car utile pour les max/min_share
             MP_parameters.update(p)
 
         if read_DHN:
@@ -541,7 +545,7 @@ class MasterProblem:
             MP_set_indexed["House_ID"] = np.array(range(0, len(self.infrastructure.houses))) + 1
 
         if "Mobility" in self.infrastructure.UnitsOfLayer:
-            MP_set_indexed['transport_Units'] = np.append(np.setdiff1d(self.infrastructure.UnitsOfLayer["Mobility"], ["EV_charger_district"]), ['PT_train', 'PT_bus'])
+            MP_set_indexed['transport_Units'] = np.setdiff1d(self.infrastructure.UnitsOfLayer["Mobility"], ["EV_charger_district"])      # PT_train enlevé
             MP_set_indexed['transport_Units_MD'], MP_set_indexed['transport_Units_cars']  = EV_gen.generate_transport_units_sets(self.infrastructure.UnitsOfType)
             MP_set_indexed['Distances'] = np.array(MP_parameters['DailyDist'].index)
 

@@ -53,4 +53,4 @@ sum { t in Time[p]} (pkm_supply[u,dist,p,t]) >= min_share[u, dist] * Population 
 
 
 subject to ICE_timeoftravel{p in Period,u in UnitsOfType['ICE']}:
-sum {t in Time[p]}(Units_supply['Mobility',u,p,t])/ff_ICE /Mode_Speed[u]  <= max_daily_time_spend_travellingICE[u] * n_ICE[u] ; 
+sum {t in Time[p]}(Units_supply['Mobility',u,p,t])/ff_ICE/Mode_Speed[u]  <= max_daily_time_spend_travellingICE[u] * n_ICE[u] ; 

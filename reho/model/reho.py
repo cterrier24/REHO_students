@@ -508,7 +508,7 @@ class REHO(MasterProblem):
     def get_battery_pathway_from_EV(self,N_EV_start=0,N_EV_stop=15,c_EV=2039,k_EV=1,y_start=2024,y_stop=2050,n=7,EV_battery_lifetime=10,battery_reuse_lifetime=10,EV_battery_capacity=70,EV_battery_degradation_factor=0.7):
 
         # From an initial and starting number of EV in the system, this function computes the battery capacities for each time step
-        goal, y_span3 = reho.get_logistic(self,E_start=N_EV_start, E_stop=N_EV_stop, y_start=y_start, y_stop=y_stop,
+        goal, y_span3 = REHO.get_logistic(self,E_start=N_EV_start, E_stop=N_EV_stop, y_start=y_start, y_stop=y_stop,
                                           k=k_EV, c=c_EV, n=y_stop - y_start)
         goal = np.round(goal)
         goal = np.array([np.round(N_EV_start)] + list(goal))

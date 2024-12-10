@@ -50,7 +50,7 @@ subject to ElectricBikes_cb2{u in UnitsOfType["EBike"]}:
 n_EBikes[u] = Units_Mult[u];
 
 subject to ElectricBikes_profile1{u in UnitsOfType['EBike'],p in Period, t in Time[p]}:
-Units_supply['Mobility',u,p,t] <= coeff_supply_EBike[u,p] * Daily_Profile[u,p,t] * (1+ tau_relaxation_supply_Ebike);
+Units_supply['Mobility',u,p,t] <= coeff_supply_EBike[u,p] * Daily_Profile[u,p,t] * (1 + tau_relaxation_supply_Ebike);
 
 subject to ElectricBikes_profile2{u in UnitsOfType['EBike'],p in Period, t in Time[p]}:
 Units_supply['Mobility',u,p,t] >= coeff_supply_EBike[u,p] * Daily_Profile[u,p,t] * (1 - tau_relaxation_supply_Ebike);
