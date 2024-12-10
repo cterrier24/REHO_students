@@ -371,7 +371,7 @@ var EMOO_slack_totex          >= 0, <= abs(EMOO_TOTEX)*Area_tot;
 var EMOO_slack_pv_upper       >= 0;#, <= abs(EMOO_PV_upper)*Area_tot;
 var EMOO_slack_pv_lower       >= 0;#, <= abs(EMOO_PV_lower)*Area_tot;
 var EMOO_slack_hp_upper       >= 0;#, <= abs(EMOO_HP_upper)*Area_tot;
-var EMOO_slack_hp_lower       >= 0;#, <= abs(EMOO_HP_lower)*Area_tot;
+var EMOO_slack_hp_lower       >= -0.1;#, <= abs(EMOO_HP_lower)*Area_tot;
 var EMOO_slack_elec_export >=0;
 
 #--------------------------------------------------------------------------------------------------------------------#
