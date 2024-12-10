@@ -513,7 +513,7 @@ class REHO(MasterProblem):
                 for h in self.infrastructure.House:
                     if pathway_data['renovation'][i][jj]!=pathway_data['renovation'][i-1][jj]:
                         if existing_units_current.loc['HeatPump_Air_'+h]['Units_Mult']!=0 and h not in df_HP_init.index:
-                            existing_units_current.loc['HeatPump_Air_'+h,'Units_Mult']=df_HP_tot.loc[h]['Units_Mult']
+                            existing_units_current.loc['HeatPump_Air_'+h,'Units_Mult']=df_HP_tot.loc[h,'Units_Mult']
                     jj+=1
 
             existing_units = pd.DataFrame(columns=['Units_Mult'],index=self.infrastructure.Units).rename_axis(index='Unit')
