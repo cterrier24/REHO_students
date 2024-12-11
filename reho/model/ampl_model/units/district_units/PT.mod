@@ -16,12 +16,13 @@ param n_rames default 40;                                                       
 param n_trolley default 100;                                                                            # nombre de trolleybus en 2024
 param n_ebus default 5;                                                                                 # nombre de bus électriques en 2024
 param n_dieselbus default 162;                                                                          # nombre de bus diesel en 2024
-param trolley_power default 200;                                                                        # consommation électrique (kW) des trolleybus via les cables [1]
-param metro_power default 200;                                                                          # estimation conso élec (kW) du métro lausannois
+param trolley_kwh default 2.42;                                                                        # consommation électrique (kWh/km) des trolleybus via les cables [1]
+param metro_kwh default 3;                                                                             # consommation électrique (kWh/km) du métro lausannois (moyenne m1+m2)
 param taux_trolleybus_district default 0.37;                                                            # % de trolleybus dans la flotte tl en 2024
 
 param dist_moy_trolley default 0.31;                                                                    # distance moyenne entre deux arrêts de bus (qlq), utilisée pour générer les bus_demand_profile
 param dist_moy_metro default 0.47;                                                                      # distance moyenne entre deux arrêts de métro, utilisée pour générer les metro_demand_profile
+param cst_relax default 0.05;                                                                           # constante de relaxation pour le chargement des bus électriques à batterie
 
 # --------------------------------------------- VARIABLES ---------------------------------------------
 var trolley_demand{p in Period, t in Time[p]};
@@ -47,7 +48,14 @@ subject to metro_cst:
 Units_Mult['Metro_district'] >= n_rames;
 
 subject to trolleybus_charging{p in Period, t in Time[p]}:
-trolley_demand[p,t] = Bus_traffic_profile[p,t] * trolley_power * (dist_moy_trolley / Mode_Speed['TrolleyBus_district']) * taux_trolleybus_district;
+trolley_demand[p,t] = Bus_traffic_profile[p,t] * trolley_kwh * dist_moy_trolley * taux_trolleybus_district;
 
 subject to metro_charging{p in Period, t in Time[p]}:
-metro_demand[p,t] = Metro_traffic_profile[p,t] * metro_power * (dist_moy_metro / Mode_Speed['Metro_district']);
+metro_demand[p,t] = Metro_traffic_profile[p,t] * metro_kwh * dist_moy_metro;
+
+# contraint le chargement des bus à batterie avec un peu de flexibilité
+subject to ebus_charging1{p in Period, t in Time[p]}:
+ebus_demand[p,t] <=  ebus_charging_profile[p,t] * (1 + cst_relax); # contrainte qui rpz le chargement d'une batterie d'un e-bus dans le district, prévoir une variable avec les pics selon les lignes et horaires ? ou juste appliquer un % comme les trolley ? (ou on peut aussi supposer à quel moment les recharges seront faites)
+
+subject to ebus_charging2{p in Period, t in Time[p]}:
+ebus_demand[p,t] >=  ebus_charging_profile[p,t] * (1 - cst_relax);

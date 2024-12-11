@@ -68,6 +68,7 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
     units = units[units.Unit.isin(transportunits)]
     PT_profiles = pd.read_csv(os.path.join(path_to_mobility, f"PT_profiles/{transformer}_PT.csv"), index_col=0)
     PT_traffic = pd.read_csv(os.path.join(path_to_mobility, f"PT_traffic/{transformer}_PT_traffic.csv"), index_col=0)
+    Bus_charging = pd.read_csv(os.path.join(path_to_mobility, 'ebus_chgpf.csv'), index_col=0)
 
     # Domestic demand ================================================================================================
     # The labels look like this : demwdy_def, demwdy_long => normalized mobility demand of a weekday 
@@ -169,6 +170,7 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
     Metro_demand_profile = pd.DataFrame(columns=['u', 'p', 't', 'Metro_demand_profile'])
     Bus_traffic_profile = pd.DataFrame(columns=['u', 'p', 't', 'Bus_traffic_profile'])
     Metro_traffic_profile = pd.DataFrame(columns=['u', 'p', 't', 'Metro_traffic_profile'])
+    Ebus_charging_profile = pd.DataFrame(columns=['u', 'p', 't', 'Ebus_charging_profile'])
 
     EV_units = list(units[units.UnitOfType == "EV"][['Unit','UnitOfType']].Unit)
     #print("EV_units = ", EV_units)
@@ -317,6 +319,21 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
         Metro_traffic_profile = pd.concat([Metro_traffic_profile, metrotraff])
 
 
+        # BUS charging
+        buschg = Bus_charging.loc[:,Bus_charging.columns.str.contains("kWh")].copy()
+        buschg['PT_bus'] = buschg['kWh']
+        buschg = buschg[Bus_units]
+
+        buschg.index.name = 't'
+        buschg.columns.name = 'u'
+        buschg = buschg.stack().to_frame(name="Ebus_charging_profile")
+        buschg.reset_index(inplace=True)
+        buschg['p'] = j + 1
+        buschg['t'] += 1
+
+        Ebus_charging_profile = pd.concat([Ebus_charging_profile, buschg])
+
+
 
     # extreme hours
     aaa = pd.DataFrame({"u": EV_charging_profile.u.unique(),"p": 11, "t": 1, "EV_charging_profile": 0},index=[f"{x}1" for x in EV_charging_profile.u.unique()])
@@ -332,12 +349,16 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
     Bus_traffic_profile = pd.concat([Bus_traffic_profile, pd.DataFrame({"u" : Bus_traffic_profile.u.unique(), "p" : 12, "t" : 1, "Bus_traffic_profile" : 0}, index=[[f"{x}2" for x in Bus_traffic_profile.u.unique()]])])
     Metro_traffic_profile = pd.concat([Metro_traffic_profile, pd.DataFrame({"u" : Metro_traffic_profile.u.unique(), "p" : 11, "t" : 1, "Metro_traffic_profile" : 0}, index=[[f"{x}1" for x in Metro_traffic_profile.u.unique()]])])
     Metro_traffic_profile = pd.concat([Metro_traffic_profile, pd.DataFrame({"u" : Metro_traffic_profile.u.unique(), "p" : 12, "t" : 1, "Metro_traffic_profile" : 0}, index=[[f"{x}2" for x in Metro_traffic_profile.u.unique()]])])
+    Ebus_charging_profile = pd.concat([Ebus_charging_profile, pd.DataFrame({"u" : Ebus_charging_profile.u.unique(), "p" : 11, "t" : 1, "Ebus_charging_profile" : 0}, index=[[f"{x}1" for x in Ebus_charging_profile.u.unique()]])])
+    Ebus_charging_profile = pd.concat([Ebus_charging_profile, pd.DataFrame({"u" : Ebus_charging_profile.u.unique(), "p" : 12, "t" : 1, "Ebus_charging_profile" : 0}, index=[[f"{x}2" for x in Ebus_charging_profile.u.unique()]])])
+    
 
     # drop 'u' column
     Bus_demand_profile.drop('u', axis=1, inplace=True)
     Metro_demand_profile.drop('u', axis=1, inplace=True)
     Bus_traffic_profile.drop('u', axis=1, inplace=True)
     Metro_traffic_profile.drop('u', axis=1, inplace=True)
+    Ebus_charging_profile.drop('u', axis=1, inplace=True)
     
 
     EV_charging_profile.set_index(['u', 'p', 't'], inplace=True)
@@ -363,6 +384,9 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
 
     Metro_traffic_profile.set_index(['p','t'], inplace=True)
     param_output['Metro_traffic_profile'] = Metro_traffic_profile
+
+    Ebus_charging_profile.set_index(['p','t'], inplace=True)
+    param_output['Ebus_charging_profile'] = Ebus_charging_profile
 
     # Mode_Speed =======================================================================================================
     default_speed = pd.DataFrame({ "UnitOfType" : ['Bike','EV','ICE','PT_bus','PT_metro','EBike'],  #PT_train enlevé
