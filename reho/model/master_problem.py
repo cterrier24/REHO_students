@@ -121,7 +121,7 @@ class MasterProblem:
                                                 "DailyDist","Mode_Speed","Cost_demand_ext","EV_charger_supply_ext","share_activity","Cost_supply_ext",
                                                 "max_share", "min_share","max_share_modes", "min_share_modes" ,  "n_ICEperhab",
                                                 "CostTransformer_inv1", "CostTransformer_inv2", "GWP_Transformer1", "GWP_Transformer2","Units_Ext_district","Transformer_Lifetime",
-                                                "Bus_demand_profile", "Metro_demand_profile"],
+                                                "Bus_demand_profile", "Metro_demand_profile", "n_rames", "n_trolley", "n_ebus", "n_dieselbus", "n_class"],
                          "list_constraints_MP": [],
                          "list_set_indexed_MP" : ["Districts","Distances"]
                          }

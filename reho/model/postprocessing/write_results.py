@@ -633,11 +633,13 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
             # df8_ter = pd.concat([df8_ter], keys=['Mobility'], names=['Layer'])
             df9 = get_ampl_data(ampl, 'EV_supply_travel', multi_index=True) 
             df9 = pd.concat([df9], keys=['Electricity'], names=['Layer'])
-            df10 = get_ampl_data(ampl, 'Bus_demand_profile', multi_index=True)
-            df10 = pd.concat([df10], keys=['Mobility'], names=['Layer'])
-            df10bis = get_ampl_data(ampl, 'Metro_demand_profile', multi_index=True)
-            df10bis = pd.concat([df10bis], keys=['Mobility'], names=['Layer'])
-            df_Unit_t = pd.concat([df_Unit_t, df4, df5, df6, df7, df9, df8, df8_bis, df10, df10bis], axis=1)  # df8_ter
+            df10 = get_ampl_data(ampl, 'trolley_demand', multi_index=True)
+            df10 = pd.concat([df10], keys=['Electricity'], names=['Layer'])
+            df10bis = get_ampl_data(ampl, 'metro_demand', multi_index=True)
+            df10bis = pd.concat([df10bis], keys=['Electricity'], names=['Layer'])
+            df10ter = get_ampl_data(ampl, 'ebus_demand', multi_index=True)
+            df10ter = pd.concat([df10ter], keys=['Electricity'], names=['Layer'])
+            df_Unit_t = pd.concat([df_Unit_t, df4, df5, df6, df7, df9, df8, df8_bis, df10, df10bis, df10ter], axis=1)  # df8_ter
 
         df_Unit_t.index.names = ['Layer', 'Unit', 'Period', 'Time']
 

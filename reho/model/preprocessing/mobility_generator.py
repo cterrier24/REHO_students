@@ -2,7 +2,7 @@ from reho.paths import *
 import reho.model.preprocessing.weather as weather
 import pandas as pd
 import numpy as np
-from scripts.examples.mobility_sector_PT_6a import transformer
+from scripts.examples.mobility_sector_PT_7a import transformer, year
 
 def generate_mobility_parameters(cluster, parameters, transportunits):
     """
@@ -63,7 +63,8 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
 
     # Read the profiles and the transportation Units
     profiles_input = pd.read_csv(os.path.join(path_to_mobility, "dailyprofiles.csv"), index_col=0)
-    share_input = pd.read_csv(os.path.join(path_to_mobility, "modalshares.csv"), index_col=0)
+    share_input = pd.read_csv(os.path.join(path_to_mobility, f"modalshares/{year}/modalshares_{year}_{transformer}.csv"), index_col=0)
+    #share_input = pd.read_csv(os.path.join(path_to_mobility, "modalshares.csv"), index_col=0)                 # for the baseline scenario
     units = pd.read_csv(os.path.join(path_to_infrastructure, "district_units.csv"),sep = ";")
     units = units[units.Unit.isin(transportunits)]
     PT_profiles = pd.read_csv(os.path.join(path_to_mobility, f"PT_profiles/{transformer}_PT.csv"), index_col=0)
@@ -353,7 +354,7 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
     Ebus_charging_profile = pd.concat([Ebus_charging_profile, pd.DataFrame({"u" : Ebus_charging_profile.u.unique(), "p" : 12, "t" : 1, "Ebus_charging_profile" : 0}, index=[[f"{x}2" for x in Ebus_charging_profile.u.unique()]])])
     
 
-    # drop 'u' column
+    # drop 'u' column, du coup on peut plus les afficher dans write_results.py 
     Bus_demand_profile.drop('u', axis=1, inplace=True)
     Metro_demand_profile.drop('u', axis=1, inplace=True)
     Bus_traffic_profile.drop('u', axis=1, inplace=True)
