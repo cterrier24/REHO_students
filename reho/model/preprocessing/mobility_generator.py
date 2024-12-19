@@ -579,7 +579,7 @@ def compute_iterative_parameters(reho_models, Scn_ID, iter, district_parameters,
         Each key of the dict refers to a district d. Used to extract the scale parameter f : district_parameters[d]['f']
     only_prices : bool
         if False, only returns the parameters Cost_demand_ext and Cost_supply_ext
-        if True, additionally returns the parameter EV_charger_supply_ext
+        if True, additionally returns the parameter EV_supply_ext
     Returns
     -------
     parameters : dict of dict
@@ -619,7 +619,7 @@ def compute_iterative_parameters(reho_models, Scn_ID, iter, district_parameters,
         df_load.columns = df_load.columns.astype(float).astype(int) # load per district and activity at the city level
 
         for d in district_parameters.keys():
-            parameters[d]["EV_charger_supply_ext"] = df_load[[d]].rename(columns={d: "EV_charger_supply_ext"}) / district_parameters[d]['f']
+            parameters[d]["EV_supply_ext"] = df_load[[d]].rename(columns={d: "EV_supply_ext"}) / district_parameters[d]['f']
 
     return parameters
 
