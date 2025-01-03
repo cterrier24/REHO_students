@@ -1,11 +1,11 @@
 UnitOfType,min_short,max_short,min_long,max_long
-EV_district,0,0.25,0,0.25
+EV_district,0,1,0,1
 Bike_district,0,1,0,0.2
-ICE_district,0,0.75,0,0.75
+ICE_district,0,0.533,0,0.533
 ElectricBike_district,0,1,0,0.2
 PT_train,0,1,0.05,1
 PT_bus,0,1,0,1
 PT_metro,0,1,0,1
-cars,0,71.057,0,71.057
-PT,0,22.215,0,22.215
-MD,0,6.728,0,6.728
+cars,0,0.7110000000000001,0,0.7110000000000001
+PT,0,0.222,0,0.222
+MD,0,0.067,0,0.067

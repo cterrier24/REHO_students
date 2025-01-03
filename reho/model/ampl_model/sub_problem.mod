@@ -223,7 +223,8 @@ sum{st in HC_Cold_loc_SQ[h,sq]: Streams_Tout_corr[st,p,t]>=k+epsilon} (Streams_M
 
 # Transformer additional capacity
 set ReinforcementTrOfLayer{ResourceBalances} default {};
-var TransformerCapacity{l in ResourceBalances} in ReinforcementTrOfLayer[l];
+#var TransformerCapacity{l in ResourceBalances} in ReinforcementTrOfLayer[l];
+param TransformerCapacity{l in ResourceBalances} default 1e8;
 var Use_TransformerCapacity{l in ResourceBalances} binary;
 param CostTransformer_inv1{l in ResourceBalances}>=0 default 0;
 param CostTransformer_inv2{l in ResourceBalances}>=0 default 0;

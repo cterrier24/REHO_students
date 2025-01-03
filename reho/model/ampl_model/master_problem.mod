@@ -181,7 +181,8 @@ var DHN_inv_house{h in House} >= 0;
 
 # Transformer additional capacity
 set ReinforcementTrOfLayer{ResourceBalances} default {};
-var TransformerCapacity{l in ResourceBalances} in ReinforcementTrOfLayer[l];
+#var TransformerCapacity{l in ResourceBalances} in ReinforcementTrOfLayer[l];
+param TransformerCapacity{l in ResourceBalances} default 1e8;
 var Use_TransformerCapacity{l in ResourceBalances} binary;
 param CostTransformer_inv1{l in ResourceBalances}>=0 default 0;
 param CostTransformer_inv2{l in ResourceBalances}>=0 default 0;

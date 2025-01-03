@@ -24,9 +24,10 @@ if __name__ == '__main__':
 
     # Set method options
     method = {'building-scale': True}
+    parameters = {"TransformerCapacity": np.array([400, 1e6])}
 
     # Run optimization
-    reho = REHO(qbuildings_data=qbuildings_data, units=units, grids=grids, cluster=cluster, scenario=scenario, method=method, solver="gurobi")
+    reho = REHO(qbuildings_data=qbuildings_data, units=units, grids=grids, cluster=cluster, scenario=scenario, method=method, parameters=parameters, solver="gurobi")
     reho.single_optimization()
 
     # Save results

@@ -121,7 +121,7 @@ class MasterProblem:
                                                 "DailyDist","Mode_Speed","Cost_demand_ext","EV_charger_supply_ext","share_activity","Cost_supply_ext",
                                                 "max_share", "min_share","max_share_modes", "min_share_modes" ,  "n_ICEperhab",
                                                 "CostTransformer_inv1", "CostTransformer_inv2", "GWP_Transformer1", "GWP_Transformer2","Units_Ext_district","Transformer_Lifetime",
-                                                "Bus_demand_profile", "Metro_demand_profile", "n_rames", "n_trolley", "n_ebus", "n_dieselbus", "n_class"],
+                                                "Bus_demand_profile", "Metro_demand_profile", "n_rames", "n_trolley", "n_ebus", "n_dieselbus", "n_class", "year", "transformer"],
                          "list_constraints_MP": [],
                          "list_set_indexed_MP" : ["Districts","Distances"]
                          }
@@ -413,6 +413,8 @@ class MasterProblem:
                 ampl_MP.read('icevehicle.mod')
             if "TrolleyBus_district" or "ElectricBus_district" or "DieselBus_district" or "Metro_district" in self.infrastructure.UnitsOfDistrict:
                 ampl_MP.read('PT.mod')
+                PT_cst = ['TP_c1_2024', 'TP_c1bis_2024', 'TP_c1_2030', 'TP_c1bis_2030', 'TP_c1_2050', 'TP_c1bis_2050']
+                self.lists_MP["list_constraints_MP"] = self.lists_MP["list_constraints_MP"] + PT_cst
             if "NG_Boiler_district" in self.infrastructure.UnitsOfDistrict:
                 ampl_MP.read('ng_boiler_district.mod')
             if "HeatPump_Geothermal_district" in self.infrastructure.UnitsOfDistrict:
@@ -595,6 +597,8 @@ class MasterProblem:
                     ampl_MP.getVariable('Units_Use').get(str(i)).fix(1)
 
         for i in MP_parameters:
+            if i in ["year","transformer"]:
+                continue
             if isinstance(MP_parameters[i], np.ndarray):
                 Para = ampl_MP.getParameter(i)
                 Para.setValues(MP_parameters[i])

@@ -88,10 +88,10 @@ sum {t in Time[p]}(travel_time[p,t]) <= max_travel_time * Population;
 # constraint on the max share of cars
 
 subject to allcars_maxshare{p in PeriodStandard,dist in Distances}:
-sum {u in transport_Units_cars, t in Time[p]}(pkm_supply[u,dist,p,t]) <= Population *  (DailyDist[dist]*max_share_modes['cars',dist] );
+sum {u in transport_Units_cars, t in Time[p]}(pkm_supply[u,dist,p,t]) <= Population *  (DailyDist[dist] * max_share_modes['cars',dist] );
 
 subject to allcars_minshare{p in PeriodStandard,dist in Distances}:
-sum {u in transport_Units_cars, t in Time[p]}(pkm_supply[u,dist,p,t])  >=  Population *  (DailyDist[dist] *min_share_modes['cars',dist]);
+sum {u in transport_Units_cars, t in Time[p]}(pkm_supply[u,dist,p,t])  >=  Population *  (DailyDist[dist] * min_share_modes['cars',dist]);
 
 subject to MD_maxshare{p in PeriodStandard,dist in Distances}:
 sum {u in transport_Units_MD, t in Time[p]}(pkm_supply[u,dist,p,t]) <= Population *  (DailyDist[dist] * max_share_modes['MD',dist] );

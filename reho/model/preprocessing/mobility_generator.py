@@ -2,7 +2,7 @@ from reho.paths import *
 import reho.model.preprocessing.weather as weather
 import pandas as pd
 import numpy as np
-from scripts.examples.mobility_sector_PT_7a import transformer, year
+#from scripts.examples.mobility_sector_PT_7a import cluster_list_to_read, year_list_to_read
 
 def generate_mobility_parameters(cluster, parameters, transportunits):
     """
@@ -62,6 +62,8 @@ def generate_mobility_parameters(cluster, parameters, transportunits):
                     }
 
     # Read the profiles and the transportation Units
+    year = parameters['year']
+    transformer = parameters['transformer']
     profiles_input = pd.read_csv(os.path.join(path_to_mobility, "dailyprofiles.csv"), index_col=0)
     share_input = pd.read_csv(os.path.join(path_to_mobility, f"modalshares/{year}/modalshares_{year}_{transformer}.csv"), index_col=0)
     #share_input = pd.read_csv(os.path.join(path_to_mobility, "modalshares.csv"), index_col=0)                 # for the baseline scenario
@@ -474,8 +476,8 @@ def generate_transport_units_sets(transportunits):
     for key in cars_UnitofType_all:
         if key in transportunits.keys():
             transport_Units_cars = transport_Units_cars + list(transportunits[key])
-    #print(transport_Units_cars)
-    #print(transportunits)
+    # print(transport_Units_cars)
+    # print(transportunits)
 
     transport_Units_cars = np.array(transport_Units_cars)
     transport_Units_MD = np.array(transport_Units_MD)
