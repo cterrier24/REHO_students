@@ -166,13 +166,14 @@ def df_sankey(df_Results, label='EN_long', color='ColorPastel', precision=2, uni
     elec_storage_list = ['Battery']
     # EV and their charging station are handled together
     EV_device = ['EV_district', "EVshared_district", "EV_charger_district"]
+    PT_device = ['TrolleyBus_district','ElectricBus_district','Metro_district']
     # Manual handled devices (list below not used, just here for the information)
     manual_device     = ['PV', 'WaterTankSH']
     # Semi automatic handled devices
-    semi_auto_device  = ['HeatPump_Air', 'HeatPump_DHN', 'NG_Boiler', 'ThermalSolar', 'OIL_Boiler',
-                         'ElectricalHeater_DHW', 'ElectricalHeater_SH', 'NG_Cogeneration', 'DHN_in',
-                         'HeatPump_Lake', 'WOOD_Stove', 'HeatPump_Geothermal', 'Air_Conditioner',
-                         'DataHeat_DHW','ICE_district','Bike_district'] # name must be the same as used by REHO
+    # semi_auto_device  = ['HeatPump_Air', 'HeatPump_DHN', 'NG_Boiler', 'ThermalSolar', 'OIL_Boiler',
+    #                      'ElectricalHeater_DHW', 'ElectricalHeater_SH', 'NG_Cogeneration', 'DHN_in',
+    #                      'HeatPump_Lake', 'WOOD_Stove', 'HeatPump_Geothermal', 'Air_Conditioner',
+    #                      'DataHeat_DHW','ICE_district','Bike_district','TrolleyBus_district','DieselBus_district','ElectricBus_district','Metro_district'] # name must be the same as used by REHO
     # Network (electrical grid, oil network...) and end use demand (DHW, SH, elec appliances) handled automatically
 
     # Semi automatic handled devices
@@ -181,7 +182,7 @@ def df_sankey(df_Results, label='EN_long', color='ColorPastel', precision=2, uni
         'ElectricalHeater_DHW', 'ElectricalHeater_SH',
         'HeatPump_Air', 'HeatPump_Geothermal', 'HeatPump_Lake', 'HeatPump_DHN', 'Air_Conditioner',
         'DHN_hex_in', 'DHN_hex_out'
-        'DataHeat_DHW', 'DataHeat_SH',
+        'DataHeat_DHW', 'DataHeat_SH', 'ICE_district'
     ]
 
     # Network (electrical grid, oil network...) and end use demand (DHW, SH, elec appliances) handled automatically
@@ -287,7 +288,24 @@ def df_sankey(df_Results, label='EN_long', color='ColorPastel', precision=2, uni
                                         df_annuals, df_label, df_stv)     
             # 3 Device to Mobility
             df_label, df_stv, _ = add_flow("Total_EV_fleet", 'Mobility (0.1 kWh/pkm)', 'Mobility', device, 'Supply_MWh',
-                                       df_annuals, df_label, df_stv,fact=1/9.37)              
+                                       df_annuals, df_label, df_stv,fact=1/9.37)
+
+    for device in PT_device:
+            # 1 Ele Cons to Device (for charging stations)
+            df_label, df_stv, _ = add_flow('Electrical_consumption', device, 'Electricity', device, 'Demand_MWh',
+                                        df_annuals, df_label, df_stv)   
+     
+            # 3 Device to Mobility
+            df_label, df_stv, _ = add_flow(device, 'Mobility (0.1 kWh/pkm)', 'Electricity', device, 'Demand_MWh',
+                                       df_annuals, df_label, df_stv)        
+
+    # Gasoline to Diesel bus
+    df_label, df_stv, _ = add_flow('FossilFuel', 'DieselBus_district', 'FossilFuel', 'DieselBus_district', 'Demand_MWh',
+                                        df_annuals, df_label, df_stv)
+    
+    # Diesel bus to Mobility 
+    df_label, df_stv, _ = add_flow('DieselBus_district', 'Mobility (0.1 kWh/pkm)', 'FossilFuel', 'DieselBus_district', 'Demand_MWh',
+                                       df_annuals, df_label, df_stv)
 
     
     # Semi-Auto for the followings devices

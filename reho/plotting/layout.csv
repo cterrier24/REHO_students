@@ -77,3 +77,7 @@ ElectricBike_district,Electric bikes,EBike,Vélos électriques,#00FF7F,springgre
 Total_EV_fleet,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise,#7AC5CD,blue
 EV_district,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise,#7AC5CD,blue
 EV_charger_district,EV charging station,EVchrg,Stations de recharge,#008080,teal,#008080,teal
+TrolleyBus_district,Trolleybus,Trolleys,Trolley bus,#000080,navy,#000080,navy
+ElectricBus_district,Electric bus,Ebus,Bus électriques,#0000CD,mediumblue,#0000CD,mediumblue
+Metro_district,Metro,Metro,Métro,#1E90FF,dodgerblue,#1E90FF,dodgerblue
+DieselBus_district,Diesel bus,dieselbus,Bus diesel,#BDB76B,darkkhaki,#BDB76B,darkkhaki

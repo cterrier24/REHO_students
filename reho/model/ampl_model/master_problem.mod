@@ -364,8 +364,11 @@ Grid_demand[l,f,h,p,t] * lambda[f,h] <= LineCapacity[l,h];
 #--------------------------------------------------------------------------------------------------------------------#
 # Transformer capacity constraints
 #--------------------------------------------------------------------------------------------------------------------#
-subject to TransformerCapacity_supply{l in ResourceBalances,p in PeriodStandard,t in Time[p]}:
+subject to TransformerCapacity_supply{l in ResourceBalances,p in PeriodStandard,t in Time[p]}:  #: l != 'Electricity'
 Network_supply[l,p,t] <= TransformerCapacity[l] * dp[p] * dt[p];
+
+# subject to TransformerCapacity_supply_elec{p in PeriodStandard,t in Time[p]}:
+# Network_supply['Electricity',p,t] + trolley_demand['TrolleyBus_district',p,t] + ebus_demand['ElectricBus_district',p,t] + metro_demand['Metro_district',p,t] <= TransformerCapacity['Electricity'] * dp[p] * dt[p];
 
 subject to TransformerCapacity_demand{l in ResourceBalances,p in PeriodStandard,t in Time[p]}:
 Network_demand[l,p,t] <= TransformerCapacity[l] * dp[p] * dt[p];

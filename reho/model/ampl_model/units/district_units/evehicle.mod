@@ -137,9 +137,11 @@ EV_supply_travel[u,p,t] = Units_supply['Mobility',u,p,t]/ ff_EV[u] / EV_eff_trav
 
 subject to EV_chargingprofile1{u in UnitsOfType['EV'],p in PeriodStandard,t in Time[p]}:
 EV_demand[u,p,t] <= coeff_charging_profile[u,p] * EV_charging_profile[u,p,t] * (1 + tau_relaxation_charging_profile); 
+#EV_demand[u,p,t] <= 3000;
 
 subject to EV_chargingprofile2{u in UnitsOfType['EV'],p in PeriodStandard,t in Time[p]}:
 EV_demand[u,p,t] >= coeff_charging_profile[u,p] * EV_charging_profile[u,p,t] * (1 - tau_relaxation_charging_profile); 
+#EV_demand[u,p,t] >= 0;
 
 subject to external_charging_c1{a in Activities,d in Districts, u in UnitsOfType['EV'], p in PeriodStandard, t in Time[p]}:
 EV_demand_ext[a,d,u,p,t] <= EV_activity[a,u,p,t]* share_activity[a,d]  * n_vehicles[u] * EV_charger_Power_ext[d];

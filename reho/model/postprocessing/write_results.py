@@ -551,7 +551,7 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
     df4 = get_ampl_data(ampl, 'GWP_supply', multi_index=True)
     df5 = get_ampl_data(ampl, 'Network_supply', multi_index=True)
     df6 = get_ampl_data(ampl, 'Network_demand', multi_index=True)
-    df7 = get_ampl_data(ampl,"Domestic_energy",multi_index = True)
+    df7 = get_ampl_data(ampl, "Domestic_energy",multi_index = True)
 
     if binary:
         df_District_t = pd.concat([df1, df2, df3, df4, df5, df6, df7], axis=1).sort_index()

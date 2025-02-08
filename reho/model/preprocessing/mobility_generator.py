@@ -2,7 +2,6 @@ from reho.paths import *
 import reho.model.preprocessing.weather as weather
 import pandas as pd
 import numpy as np
-#from scripts.examples.mobility_sector_PT_7a import cluster_list_to_read, year_list_to_read
 
 def generate_mobility_parameters(cluster, parameters, transportunits):
     """

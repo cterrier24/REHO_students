@@ -52,24 +52,25 @@ subject to TP_c1bis_2050{u in UnitsOfType['PT_metro'], p in Period, t in Time[p]
 Units_supply['Mobility',u,p,t] <= Metro_demand_profile[p,t] * 1.5;                                      # car la flotte augmente de 50% par rapport à 2024 (même situation que 2030)
 
 subject to trolleybus_cst:
-Units_Mult['TrolleyBus_district'] >= n_trolley;
+Units_Mult['TrolleyBus_district'] >= n_trolley/n_class;
 
 subject to ebus_cst:
-Units_Mult['ElectricBus_district'] >= n_ebus;
+Units_Mult['ElectricBus_district'] >= n_ebus/n_class;
 
 subject to dieselbus_cst:
-Units_Mult['DieselBus_district'] >= n_dieselbus;
+Units_Mult['DieselBus_district'] >= n_dieselbus/n_class;
 
 subject to metro_cst:
-Units_Mult['Metro_district'] >= n_rames;
+Units_Mult['Metro_district'] >= n_rames/n_class;
 
 subject to trolleybus_charging{p in Period, t in Time[p]}:
-trolley_demand['TrolleyBus_district',p,t] = Bus_traffic_profile[p,t] * trolley_kwh * dist_moy_trolley * (n_trolley / n_class);
+trolley_demand['TrolleyBus_district',p,t] = Bus_traffic_profile[p,t] * trolley_kwh * dist_moy_trolley * (n_trolley / (n_trolley + n_ebus + n_dieselbus));       # mind that the present file has been run on districts where the denominator wasn't null, if so it means that there is no buses in the district and that this constraint is obsolete
 
 subject to metro_charging{p in Period, t in Time[p]}:
-metro_demand['Metro_district',p,t] = Metro_traffic_profile[p,t] * metro_kwh * dist_moy_metro * (n_rames / n_class);
+metro_demand['Metro_district',p,t] = Metro_traffic_profile[p,t] * metro_kwh * dist_moy_metro;
 
 # contraint le chargement des bus à batterie avec un peu de flexibilité
+# The profile is multiplied by the number of buses because it's been generated for one vehicle only, unlike trolleys and metros where the traffic profile is for the whole fleet
 subject to ebus_charging1{p in Period, t in Time[p]}:
 ebus_demand['ElectricBus_district',p,t] <=  Ebus_charging_profile[p,t] * (n_ebus / n_class) * (1 + cst_relax); 
 
