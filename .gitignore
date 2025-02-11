@@ -318,7 +318,7 @@ reho/test/figures/*
 reho/test/results/*
 
 # Scripts
-scripts/*
+#scripts/*
 !scripts/examples/
 *.json
 *.dat
