@@ -578,11 +578,12 @@ class REHO(MasterProblem):
             self.update_cost_building_units(y_current=y_span[i])
 
             # Update the constraints
-            self.parameters['HeatPump_install']=pathway_data['EMOO']['HeatPump']['Units_Use'][i]
-            #self.parameters['HeatPump_install_Units_Mult']=pathway_data['EMOO']['HeatPump']['Units_Mult'][i]
-
-            self.parameters['PV_install']=pathway_data['EMOO']['PV']['Units_Use'][i]
-            self.parameters['PV_install_Units_Mult']=pathway_data['EMOO']['PV']['Units_Mult'][i]
+            if 'EMOO' in pathway_data.keys():
+                if 'HeatPump' in pathway_data['EMOO'].keys():
+                    self.parameters['HeatPump_install']=pathway_data['EMOO']['HeatPump']['Units_Use'][i]
+                if 'PV' in pathway_data['EMOO'].keys():
+                    self.parameters['PV_install']=pathway_data['EMOO']['PV']['Units_Use'][i]
+                    self.parameters['PV_install_Units_Mult']=pathway_data['EMOO']['PV']['Units_Mult'][i]
 
             # Update the EVs
             self.parameters["Population"] = N_EV[i]

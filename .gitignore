@@ -324,12 +324,12 @@ scripts/*
 requirements.txt
 
 # Keep local data
-reho/data/infrastructure/cost_inv1_evolution.csv
-reho/data/infrastructure/cost_inv2_evolution.csv
+
+reho/data/infrastructure/cost_inv2_evolution_real.csv
 reho/data/infrastructure/building_units.csv
 reho/data/infrastructure/district_units.csv
 reho/data/infrastructure/grids.csv
-reho/data/infrastructure/reinforcement_inv.csv
+reho/data/infrastructure/reinforcement_inv_real.csv
 
 scripts/examples/
 reho/plotting/plotting_FR.py
