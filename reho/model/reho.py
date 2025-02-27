@@ -425,10 +425,6 @@ class REHO(MasterProblem):
         # Get the scenario name
         Scn_ID = self.scenario["name"]
 
-        # cost_inv1_data = file_reader(os.path.join(path_to_infrastructure,'cost_inv1_evolution.csv'))
-        # cost_inv2_data = file_reader(os.path.join(path_to_infrastructure,'cost_inv2_evolution.csv'))
-        # cost_inv1_data = cost_inv1_data.set_index('Unit')
-        # cost_inv2_data = cost_inv2_data.set_index('Unit')
 
         # If the set of time period is not given
         if 'y_span' not in pathway_data.keys():
@@ -534,6 +530,9 @@ class REHO(MasterProblem):
 
 
     def pathway_building_scale(self,pathway_data,existing_init):
+        """
+        This function is used to run the pathways, using a building scale approach for installation constraints.
+        """
         # This function computes a myopic pathway, constrained by the list of EMOO constrains on a given set of period y_span
 
         # Get the scenario name
@@ -620,6 +619,10 @@ class REHO(MasterProblem):
 
 
     def update_cost_building_units(self,cost_inv1_file=os.path.join(path_to_infrastructure,'cost_inv1_evolution.csv'),cost_inv2_file=os.path.join(path_to_infrastructure,'cost_inv2_evolution.csv'),y_current=2030):
+        """
+        This function is used to update the cost of building units.
+        The fixed (c_inv1) and variable costs (c_inv2) data for years 2020, 2030,2040,2050 are specified in the files cost_inv1_evolution.csv and cost_inv2_evolution.csv (in the infrastructre data)
+        """
         if self.method['update_units_costs']:
             cost_inv1_data=file_reader(cost_inv1_file)
             cost_inv2_data=file_reader(cost_inv2_file)
@@ -636,8 +639,11 @@ class REHO(MasterProblem):
                 self.infrastructure_SP[h].Units_Parameters.loc[self.infrastructure_SP[h].Units_Parameters.index.str.contains(idx),'Cost_inv2']=np.interp(y_current, cost_inv2_data.columns,row)
 
     def get_logistic(self,E_start=1e-2,E_stop=1e-3,y_start=2024,y_stop=2050,k=1,c=2035,n=2, final_value=False,starting_value=True):
-        # Create a logistic curve 
-        #k must be always positive, and c must be always between y_start and y_stop
+        """
+        Creates a logistic curve (S-curve).
+        The logistic function is described as E(y), where E is any indicator or parameter, and y is the year.
+        k must be always positive, and c must be always between y_start and y_stop
+        """
         y_span=np.linspace(start=y_start,stop=y_stop,num=n,endpoint=True)
         if E_start==E_stop:
             EMOO_list=[E_start for key in y_span]
@@ -655,9 +661,13 @@ class REHO(MasterProblem):
         return EMOO_list,y_span
     
     def get_logistic_partial(self,E_start=0,E_stop=1,y_start=2024,y_stop=2050,k=0.1,y=2024,E=0.6,n=5,final_value=False):
-        # If you don't want to start from E_start with a flat slope, because you know a measure (y,E) (The logistic curve started earlier than y_start). You can start from a partial logistic curve. 
-        # Since a measure is taken (y,E), the number of parameters to select is reduced by one. This means, instead of selecting k and c, you only select k: c is deduced from the measure (y,E). 
-
+        """
+        Creates a partial logistic curve (S-curve) starting from the observed point (E,y).
+        If you don't want to start from E_start with a flat slope, because you know a measure (y,E) (The logistic curve started earlier than y_start). You can start from a partial logistic curve. 
+        Since a measure is taken (y,E), the number of parameters to select is reduced by one. This means, instead of selecting k and c, you only select k: c is deduced from the measure (y,E). 
+        k must be always positive.
+        """
+        
         # Create year steps       
         y_span=np.linspace(start=y_start,stop=y_stop,num=n,endpoint=True)
 
@@ -691,6 +701,17 @@ class REHO(MasterProblem):
 
     
     def select_values_random(self,values, initial_selection, steps):
+        """
+        This function is used to select random buildings for the pathway.
+        For instance, if you have 5 buildings and you want to gradually install PV in the buildings.
+        For each pathway step, you need to specify the number of buildings in which you want PV to be installed: steps=[1,1,2,3,4,4,5,5]
+        Here is the list of PV capacity that you want to install: values=[5,5,5,10,10]
+        Consider that the first building already has its 5kW installed: initial_selection=[1,0,0,0,0]
+        Then, this function will return you 3 dictionaries:
+        - EMOO_data: each key is a step of the pathway. For each key, there is the list of PV installed capacity for each building (example: EMOO_data[0]=[5,0,0,0,0], EMOO_data[2]=[5,0,0,0,10])
+        - EMOO_bool_tot: each key is a step of the pathway. For each key there is a boolean list of which building has PV installed (example: EMOO_data[0]=[1,0,0,0,0], EMOO_data[2]=[1,0,0,0,1])
+        - EMOO_bool: each key is a step of the pathway. For each key there is a boolean list of which building installed PV for the current step(example: EMOO_data[0]=[1,0,0,0,0], EMOO_data[2]=[0,0,0,0,1])
+        """
         EMOO_data = {}
         EMOO_bool = {}
         EMOO_bool_tot = {}
@@ -719,9 +740,11 @@ class REHO(MasterProblem):
         return EMOO_data,EMOO_bool, EMOO_bool_tot        
 
     def get_battery_pathway_from_EV(self,N_EV_start=0,N_EV_stop=15,c_EV=2039,k_EV=1,y_start=2024,y_stop=2050,n=7,EV_battery_lifetime=10,battery_reuse_lifetime=10,EV_battery_capacity=70,EV_battery_degradation_factor=0.7):
-
-        # From an initial and starting number of EV in the system, this function computes the battery capacities for each time step
-        goal, y_span3 = reho.get_logistic(self,E_start=N_EV_start, E_stop=N_EV_stop, y_start=y_start, y_stop=y_stop,
+        """
+        From an initial and starting number of EV in the system, this function computes the battery capacities for each time step.
+        (Consideration of reuse of old EV batteries as district batteries)
+        """
+        goal, y_span3 = self.get_logistic(self,E_start=N_EV_start, E_stop=N_EV_stop, y_start=y_start, y_stop=y_stop,
                                           k=k_EV, c=c_EV, n=y_stop - y_start)
         goal = np.round(goal)
         goal = np.array([np.round(N_EV_start)] + list(goal))
