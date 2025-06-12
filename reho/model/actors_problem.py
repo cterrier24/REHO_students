@@ -27,7 +27,7 @@ class ActorsProblem(REHO):
 
         super().__init__(qbuildings_data, units, grids, parameters, set_indexed, cluster, method, scenario, solver, DW_params)
 
-    def get_max_profit_actor(self, actor="Utility"):
+    def get_max_profit_actor(self, actor="ECM"):
         """
         Define and validate epsilon bounds for each actor in the decomposition.
 
@@ -86,7 +86,7 @@ class ActorsProblem(REHO):
         linear : boolean, optional
             If True,  use linear grid sampling; if False, apply Sobol sampling  (default=False).
         """
-        util_lb, util_ub = bounds['Utility']
+        util_lb, util_ub = bounds['ECM']
         own_lb, own_ub = bounds['Owners']
         l_bound = [util_lb, own_lb]
         u_bound = [util_ub + 1e-5, own_ub + 1e-5]
@@ -94,7 +94,7 @@ class ActorsProblem(REHO):
         sampler = qmc.Sobol(d=2, scramble=True)
         k = math.ceil(math.log2(n_samples or 1))
         points = sampler.random_base2(m=k)[:n_samples]
-        df_samples = pd.DataFrame(qmc.scale(points, l_bound, u_bound), columns=['utility_profit_min', 'owner_PIR_min']).round(4)
+        df_samples = pd.DataFrame(qmc.scale(points, l_bound, u_bound), columns=['ECM_profit_min', 'owner_PIR_min']).round(4)
 
         self.samples = df_samples.loc[df_samples.index.repeat(len(ins_target))].reset_index(drop=True)
         self.samples['ins_target'] = np.tile(ins_target, n_samples)
@@ -129,10 +129,3 @@ class ActorsProblem(REHO):
                 if key == 'df_Dual' or key == 'df_Actors_dual' or key == 'df_Dual_t':
                     results[key][f'Iter.{i}'] = df
         self.results[Scn_ID][Pareto_ID]['df_Dual'] = results
-
-    def get_profit_ratio(self):
-        Costs_inv = self.results['Owners'][0]['df_Performance']['Costs_inv']
-        Costs_House_upfront = self.results['Owners'][0]['df_Performance']['Costs_House_upfront']
-        owner_profit = self.results['Owners'][0]['df_Performance']['owner_profit']
-        opr = (owner_profit / (Costs_inv + Costs_House_upfront)).mean()
-        return opr

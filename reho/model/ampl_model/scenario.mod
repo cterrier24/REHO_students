@@ -12,8 +12,8 @@ penalties = sum{h in House} Costs_House_cft[h] +
             penalty_ratio * Costs_grid_connection +
             penalty_ratio * (Costs_op + tau*(Costs_inv + Costs_rep)) +
             penalty_ratio * (GWP_op + GWP_constr) +
-            penalty_ratio * sum{l in ResourceBalances,h in HousesOfLayer[l],p in Period,t in Time[p]} (Grid_supply[l,h,p,t] + Grid_demand[l,h,p,t]) +
-            penalty_ratio * sum{l in ResourceBalances,p in Period,t in Time[p]} (Network_supply[l,p,t] + Network_demand[l,p,t]);
+            penalty_ratio * sum{l in ResourceBalances,h in HousesOfLayer[l],p in Period,t in Time[p]} ((Grid_supply[l,h,p,t] + Grid_demand[l,h,p,t]) *dp[p]*dt[p])+
+            penalty_ratio * sum{l in ResourceBalances,p in Period,t in Time[p]} ((Network_supply[l,p,t] + Network_demand[l,p,t])*dp[p]*dt[p]);
 
 minimize OPEX: 
 Costs_op + Costs_grid_connection + penalties;
@@ -33,46 +33,70 @@ minimize MAX_EXPORT:
 #--------------------------------------------------------------------------------------------------------------------#
 # Actors
 #--------------------------------------------------------------------------------------------------------------------#
-set Obj_fct := {'TOTEX', 'OPEX', 'CAPEX', 'GWP', "Owners", "Renters", "Utility"};
+set Obj_fct := {'TOTEX', 'OPEX', 'CAPEX', 'GWP', "Owners", "Renters", "ECM", "DSO"};
 param beta_duals{o in Obj_fct} default 0;
 
 param nu_Renters{h in House} default beta_duals["Renters"];
 param nu_Owners{h in House}  default beta_duals["Owners"];
-param nu_Utility default beta_duals["Utility"];
+param nu_ECM default beta_duals["ECM"];
+param nu_DSO default beta_duals["DSO"];
 
-param C_rent_fix{h in House} default 0;
-param Cost_self_consumption{h in House} default Cost_supply_cst['Electricity'];
-param Cost_supply_district{h in House, l in ResourceBalances} default Cost_supply_cst[l];
-param Cost_demand_district{h in House, l in ResourceBalances} default Cost_demand_cst[l];
+
+param Cost_self_consumption{h in House, p in Period, t in Time[p]} default Cost_supply_cst['Electricity'];
+param Cost_supply_district{h in House, l in ResourceBalances, p in Period, t in Time[p]} default Cost_supply_cst[l];
+param Cost_demand_district{h in House, l in ResourceBalances, p in Period, t in Time[p]} default Cost_demand_cst[l];
 
 param renter_subsidies{h in House} default 0;
 param owner_subsidies{h in House} default 0;
+param ECM_subsidies default 0;
+
+param Costs_Unit_inv_district default 0;
+param Costs_rep_district default 0;
+param DSO_reinforce default 0;
 
 var cost_actors;
 var objective_owners{h in House};
 var objective_renters{h in House};
-var objective_utility;
+var objective_ECM;
+var objective_DSO;
+
+var test{h in House};
+subject to obj_test{h in House}:
+test[h] = sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} (Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]); 
+
+var test_dpdt;
+subject to dpdt:
+test_dpdt = sum{p in Period, t in Time[p]}(dp[p]*dt[p]);
 
 subject to obj_renters{h in House}:
-objective_owners[h] = C_rent_fix[h] 
-                    + sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h])  
-                    + sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_demand_district[h,l] * Grid_demand[l,h,p,t])  
-                    - Costs_House_inv[h] * tau
-                    - ERA[h] * Costs_House_upfront / ((1-(1+i_rate)^(-70))/i_rate)
-                    + owner_subsidies[h];
-
-subject to obj_owners{h in House}:
-objective_renters[h] = C_rent_fix[h]
-                    + sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_supply_district[h,l] * Grid_supply[l,h,p,t]) 
-                    + sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h])
+objective_renters[h] = sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_supply_district[h,l,p,t]* Grid_supply[l,h,p,t] * dp[p] * dt[p]) 
+                    + sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])
                     - renter_subsidies[h];
 
-subject to obj_utility:
-objective_utility = sum{h in House, l in ResourceBalances, p in Period, t in Time[p]} (Cost_supply_district[h,l] * Grid_supply[l,h,p,t])
-                    - sum{h in House, l in ResourceBalances, p in Period, t in Time[p]} (Cost_demand_district[h,l] * Grid_demand[l,h,p,t]);
+subject to obj_owners{h in House}:
+objective_owners[h] = sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])  
+                    + sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_demand_district[h,l, p, t] * Grid_demand[l,h,p,t] *dp[p]*dt[p])  
+                    - sum{l in ResourceBalances} Costs_grid_connection_House[l,h] 
+                    - Costs_House_inv[h] * tau
+                    + owner_subsidies[h];
+
+subject to obj_ECM:
+objective_ECM = sum{h in House, l in ResourceBalances, p in Period, t in Time[p]} (Cost_supply_district[h,l, p, t] * Grid_supply[l,h,p,t] *dp[p]*dt[p])
+            - sum{h in House, l in ResourceBalances, p in Period, t in Time[p]} (Cost_demand_district[h,l, p, t]  * Grid_demand[l,h,p,t] *dp[p]*dt[p])
+            + sum{l in ResourceBalances, h in House} Costs_grid_connection_House[l,h]
+            - sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_cst["Electricity"] * Network_supply["Electricity",p,t] + Cost_demand_cst["Electricity"] * Network_demand["Electricity",p,t]) *dp[p]*dt[p]) 
+            - sum{h in House, p in PeriodStandard, t in Time[p]}(0.02 * Grid_demand["Electricity",h,p,t] * dp[p] * dt[p])
+            - sum{l in ResourceBalances,p in PeriodStandard,t in Time[p]}( (Cost_supply_cst[l]*Network_supply[l,p,t] - Cost_demand_cst[l]*Network_demand[l,p,t])*dp[p]*dt[p])
+            - Costs_Unit_inv_district
+            - Costs_rep_district;
+
+subject to obj_DSO:
+objective_DSO = sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_cst["Electricity"] * Network_supply["Electricity",p,t] + Cost_demand_cst["Electricity"] * Network_demand["Electricity",p,t]) *dp[p]*dt[p]) 
+            + sum{l in ResourceBalances, h in House, p in PeriodStandard, t in Time[p]}(0.02 * Grid_demand[l,h,p,t] * dp[p] * dt[p])
+            - DSO_reinforce;
 
 subject to actors_costs_SP:
-cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) + sum{h in House} (nu_Owners[h] * objective_owners[h]) + nu_Utility * objective_utility;
+cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) - sum{h in House} (nu_Owners[h] * objective_owners[h]) + nu_ECM * objective_ECM + nu_DSO * objective_DSO;
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Decomposition

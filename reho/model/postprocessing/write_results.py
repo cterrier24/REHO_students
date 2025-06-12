@@ -631,42 +631,52 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
     if method["actors_problem"]:
         # Renters’ expenses and the profits of Owners and the Utility
         df1 = get_ampl_data(ampl, 'renter_expense')
-        df2 = get_ampl_data(ampl, 'utility_profit')
-        df3 = get_ampl_data(ampl, 'owner_profit')
-        df_Results["df_Actors_expense"] = pd.concat([df1, df2, df3], axis=1)
+        df2 = get_ampl_data(ampl, 'owner_profit')
+        df3 = get_ampl_data(ampl, 'ECM_profit')
+        df4 = get_ampl_data(ampl, 'DSO_profit')
+        df_Actors_expense = pd.concat([df1, df2, df3,df4], axis=1)
+        df_network = df_Actors_expense.sum(axis=0).to_frame().T.set_index(pd.Index(["Network"]))
+        df_Results["df_Actors_expense"] = pd.concat([df_Actors_expense, df_network], axis=0)
 
-        df1 = get_ampl_data(ampl, 'Cost_demand_district', multi_index=True).groupby(level=(0, 2)).sum()
-        df2 = get_ampl_data(ampl, 'Cost_supply_district', multi_index=True).groupby(level=(0, 2)).sum()
-        df3 = get_ampl_data(ampl, 'Cost_self_consumption', multi_index=True).groupby(level=1).sum()
+        df1 = get_ampl_data(ampl, 'Cost_demand_district', multi_index=True).groupby(level=(0, 2, 3, 4)).sum()
+        df2 = get_ampl_data(ampl, 'Cost_supply_district', multi_index=True).groupby(level=(0, 2, 3, 4)).sum()
+        df3 = get_ampl_data(ampl, 'Cost_self_consumption', multi_index=True).groupby(level=(1, 2, 3)).sum()
         df3 = pd.concat({'Electricity': df3})
-        df_Results["df_Actors_tariff"] = pd.concat([df1, df2, df3], axis=1)
+        df_actor_tariff = pd.concat([df1,df2,df3], axis=1)
+        df_actor_tariff.index.names = ['ResourceBalances', 'Hub', 'Period', 'Time']
+        df_Results["df_Actors_tariff"] = df_actor_tariff.sort_index()
 
         df1 = get_ampl_data(ampl, 'Cost_self_consumption', multi_index=True)
         df1 = pd.concat({'Electricity': df1})
         df2 = get_ampl_data(ampl, 'Cost_demand_district', multi_index=True)
         df3 = get_ampl_data(ampl, 'Cost_supply_district', multi_index=True)
-        df_actor_tariff = pd.concat([df1,df2,df3], axis=1)
-        df_actor_tariff.index.names = ['ResourceBalances', 'FeasibleSolutions', 'Hub']
-        df_Results["df_Actors_tariff_f"] = df_actor_tariff.sort_index()
+        df_actor_tariff_f = pd.concat([df1,df2,df3], axis=1)
+        df_actor_tariff_f.index.names = ['ResourceBalances', 'FeasibleSolutions', 'Hub', 'Period', 'Time']
+        df_Results["df_Actors_tariff_f"] = df_actor_tariff_f.sort_index()
 
         # Total expenses and profits of each type of actor
         df_Results["df_Actors"] = get_ampl_data(ampl, 'objective_functions')
 
-        df1 = get_ampl_data(ampl, 'C_op_renters_to_utility')
+        df1 = get_ampl_data(ampl, 'C_op_renters_to_ECM')
         df2 = get_ampl_data(ampl, 'C_op_renters_to_owners')
-        df3 = get_ampl_data(ampl, 'C_op_utility_to_owners')
+        df3 = get_ampl_data(ampl, 'C_op_owners_to_ECM')
+        df4 = get_ampl_data(ampl, 'C_op_ECM_to_owners')
+        df5 = get_ampl_data(ampl, 'C_op_ECM_to_DSO')
 
-        df4 = get_ampl_data(ampl, 'Costs_House_inv') # total investment of units of the buildings (exc. Costs_House_init)
-        df4.columns = ["owner_inv"]
-        df5 = get_ampl_data(ampl, 'owner_profit') # owners' profits without subsidies
-        df6 = get_ampl_data(ampl, 'renter_expense') # renters' expenses with subsidies
-        df7 = get_ampl_data(ampl, 'C_rent_fix')
-        df8 = get_ampl_data(ampl, 'renter_subsidies')
-        df9 = get_ampl_data(ampl, 'owner_subsidies')
-        df10 = get_ampl_data(ampl, 'is_ins')
-        df11 = get_ampl_data(ampl, 'Costs_House_upfront') # Upfront investment costs in buildings
+        df6 = get_ampl_data(ampl, 'Costs_House_inv') # total investment of units of the buildings (exc. Costs_House_init)
+        df6.columns = ["owner_inv"]
+        df7 = get_ampl_data(ampl, 'owner_profit') # owners' profits without subsidies
+        df8 = get_ampl_data(ampl, 'renter_expense') # renters' expenses with subsidies
+        df9 = get_ampl_data(ampl, 'renter_subsidies')
+        df10= get_ampl_data(ampl, 'owner_subsidies')
+        df11 = get_ampl_data(ampl, 'ECM_profit')
+        df12 = get_ampl_data(ampl, 'ECM_subsidies')
+        df13 = get_ampl_data(ampl, 'is_ins')
+        df14 = tau[0] * get_ampl_data(ampl, 'DSO_reinforce')
+        df15 = get_ampl_data(ampl, 'DSO_profit')
 
-        df_Actors = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11], axis=1)
+
+        df_Actors = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11,df12, df13, df14, df15], axis=1)
         df_network = df_Actors.sum(axis=0).to_frame().T.set_index(pd.Index(["Network"]))
         df_Actors = pd.concat([df_Actors, df_network], axis=0)
         df_Results["df_District"] = pd.concat([df_Results["df_District"], df_Actors], axis=1)
@@ -679,14 +689,17 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
         df2 = get_ampl_dual_values_in_pandas(ampl, 'Owner_epsilon', multi_index=False)
         df2.columns = ['nu_Owners']
 
-        df3 = get_ampl_dual_values_in_pandas(ampl, 'Utility_epsilon', multi_index=False)
-        df3.columns = ['nu_Utility']
+        df3 = get_ampl_dual_values_in_pandas(ampl, 'ECM_epsilon', multi_index=False)
+        df3.columns = ['nu_ECM']
 
-        df_Results["df_Actors_dual"] = pd.concat([df1, df2, df3], axis=1)
+        df4 = get_ampl_dual_values_in_pandas(ampl, 'DSO_epsilon', multi_index=False)
+        df4.columns = ['nu_DSO']
+
+        df_Results["df_Actors_dual"] = pd.concat([df1, df2, df3, df4], axis=1)
 
         df_Results["Samples"] = dict()
         df_Results["Samples"]["Owner_PIR_min"] = get_ampl_data(ampl, 'owner_PIR_min')
-        df_Results["Samples"][("Owner_PIR_max")] = get_ampl_data(ampl, 'owner_PIR_max')
+        df_Results["Samples"]["Owner_PIR_max"] = get_ampl_data(ampl, 'owner_PIR_max')
         df_Results["Samples"]["Renter_Epsilon"] = get_ampl_data(ampl, 'renter_expense_max')
         renter_series = get_ampl_data(ampl, 'renter_expense_max')['renter_expense_max']
         network_total = pd.Series({'Network': renter_series.sum()}, name='renter_expense_max')

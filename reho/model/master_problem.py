@@ -121,7 +121,8 @@ class MasterProblem:
         self.DW_params = self.initialise_DW_params(self.DW_params, self.cluster, self.buildings_data)
 
         # TODO change the nomenclature of these parameters to semi-automate the separation between MP and SP: (ex: all MP parameters end with _MP)
-        self.lists_MP = {"list_parameters_MP": ['Uh', 'Uh_ins', 'ins_target', 'renter_subsidies_bound', 'renter_expense_max','utility_profit_min', 'owner_PIR_max', 'owner_PIR_min', 'EMOO_totex_renter',
+        self.lists_MP = {"list_parameters_MP": ['Uh', 'Uh_ins', 'ins_target', 'renter_subsidies_bound', 'renter_expense_max','ECM_profit_min',
+                                                'owner_PIR_max', 'owner_PIR_min','ECM_profit_min', 'EMOO_totex_renter',
                                                 'Network_ext',
                                                 'monthly_grid_connection_cost',
                                                 "area_district", "velocity", "density", "delta_enthalpy", "cinv1_dhn", "cinv2_dhn", "Population",
@@ -139,7 +140,7 @@ class MasterProblem:
                                                      'ExternalEV_Costs_positive']
 
         if self.method['actors_problem']:
-            self.lists_MP["list_constraints_MP"] += ['Owner_Link_Subsidy_to_Insulation', 'Owner_profit_max_PIR', 'Owner_noSub', 'Renter_noSub']
+            self.lists_MP["list_constraints_MP"] += ['Owner_Link_Subsidy_to_Insulation', 'Owner_noSub', 'Renter_noSub']
 
         self.df_fix_Units = pd.DataFrame()
 
@@ -906,13 +907,15 @@ class MasterProblem:
             if self.method['actors_problem']:
                 nu = {}
                 nu["Renters"] = self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter, h, 'nu_Renters').dropna()
-                nu["Utility"] = self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter, h, 'nu_Utility').dropna().iat[0]
+                nu["ECM"] = self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter, h, 'nu_ECM').dropna().iat[0]
+                nu["DSO"] = self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter, h, 'nu_DSO').dropna().iat[0]
                 nu["Owners"] = self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter, h, 'nu_Owners').dropna()
                 if scenario['Objective'] == "TOTEX_actor":
                     nu[self.set_indexed["ActorObjective"][0]] = 1.0
                 rc_actors[h] = nu["Renters"][h] * actors.get_actor_expenses('Renters', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)\
-                               +nu["Utility"] * actors.get_actor_expenses('Utility', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)\
-                               +nu["Owners"][h] * actors.get_actor_expenses('Owner', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)
+                               -nu["ECM"] * actors.get_actor_expenses('ECM', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results) \
+                               -nu["DSO"] * actors.get_actor_expenses('DSO', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results) \
+                               -nu["Owners"][h] * actors.get_actor_expenses('Owner', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)
 
         # calculate objective function for each Pareto_ID with latest dual values
         reduced_cost = pd.DataFrame()
@@ -1161,7 +1164,7 @@ class MasterProblem:
             attribute = 'df_beta'
         elif dual_variable in ['mu']:
             attribute = 'df_Dual'
-        elif dual_variable in ['nu_Renters', 'nu_Owners','nu_Utility']:
+        elif dual_variable in ['nu_Renters', 'nu_Owners','nu_Utility', 'nu_DSO','nu_ECM']:
             attribute = 'df_Actors_dual'
 
         df = self.results_MP[Scn_ID][Pareto_ID][iter][attribute]

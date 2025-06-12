@@ -38,7 +38,7 @@ param dp{p in Period} default 1;			# days
 param Area_tot default 100;
 param ERA{h in House} default 100;
 
-param n_years default 25;
+param n_years default 30;
 param i_rate default 0.02;
 param tau := i_rate*(1+i_rate)^n_years/(((1+i_rate)^n_years)-1);
 
@@ -214,7 +214,7 @@ subject to Costs_House_capex{h in House}:
 Costs_House_inv[h] =sum{f in FeasibleSolutions} lambda[f,h] * Costs_inv_rep_SPs[f,h] + DHN_inv_house[h];
 
 subject to Costs_capex:
-Costs_inv = sum{h in House}(Costs_House_inv[h]) + tau* ( sum{u in Units}(Costs_Unit_inv[u]) + Costs_rep + sum{l in ResourceBalances} (Cost_network_inv1[l]*Use_Network_capacity[l]+Cost_network_inv2[l] * (Network_capacity[l]-Network_ext[l] * (1- Use_Network_capacity[l]))) );
+Costs_inv = sum{h in House}(Costs_House_inv[h]) + tau* (sum{u in Units}(Costs_Unit_inv[u]) + Costs_rep + sum{l in ResourceBalances} (Cost_network_inv1[l]*Use_Network_capacity[l]+Cost_network_inv2[l] * (Network_capacity[l]-Network_ext[l] * (1- Use_Network_capacity[l]))) );
 
 subject to cft_costs_house{h in House}: 
 Costs_House_cft[h] = sum{f in FeasibleSolutions} (lambda[f,h] * Costs_ft_SPs[f,h]);
@@ -343,11 +343,12 @@ var penalties default 0;
 
 var renter_subsidies{h in House} >= 0;
 var owner_subsidies{h in House} >= 0;
+var ECM_subsidies >= 0;
 
 subject to penalties_contraints:
 penalties = penalty_ratio * (Costs_inv + Costs_op +
             sum{l in ResourceBalances,p in PeriodExtreme,t in Time[p]} (Network_supply[l,p,t] + Network_demand[l,p,t]))
-             + sum{h in House}(renter_subsidies[h] + owner_subsidies[h]);
+             + sum{h in House}(renter_subsidies[h] + owner_subsidies[h]) + ECM_subsidies;
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Objective functions

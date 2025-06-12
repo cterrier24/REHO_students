@@ -1,8 +1,9 @@
 from reho.paths import *
 import pandas as pd
 import numpy as np
-import sympy as sp
 import math
+import sympy as sp
+
 # TODO: add "statsmodels" and "sympy" in to env.
 from scipy.optimize import curve_fit
 
@@ -48,9 +49,9 @@ def power_law(x, a, b):
 
 def get_actor_parameters(scenario, set_indexed, result, Scn_ID, Pareto_ID, iter = 0, h = str):
     params = {}
-    for dual_variable in ['nu_Renters','nu_Utility', 'nu_Owners']:
+    for dual_variable in ['nu_Renters', 'nu_Owners','nu_ECM', 'nu_DSO']:
         dual_value = result[Scn_ID][Pareto_ID][iter - 1]['df_Actors_dual'][dual_variable]
-        if dual_variable == 'nu_Utility':
+        if dual_variable == 'nu_DSO' or dual_variable == 'nu_ECM':
             params[dual_variable] = dual_value.dropna()[0]
         else:
             params[dual_variable] = dual_value[h]
@@ -58,29 +59,36 @@ def get_actor_parameters(scenario, set_indexed, result, Scn_ID, Pareto_ID, iter 
     if scenario["Objective"] == "TOTEX_actor":
         params["nu_" + set_indexed["ActorObjective"][0]] = 1.0
 
-    C_rent_fix = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['C_rent_fix']
-    params['C_rent_fix'] = C_rent_fix[h]
-
     owner_subsidies = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['owner_subsidies']
     renter_subsidies = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['renter_subsidies']
+    ECM_subsidies = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['ECM_subsidies']
+    Costs_Unit_inv_district = result[Scn_ID][Pareto_ID][iter - 1]['df_Unit']['Costs_Unit_inv'].sum()
+    Costs_rep_district = result[Scn_ID][Pareto_ID][iter - 1]['df_Unit']['Costs_Unit_rep'].sum()
+    DSO_reinforce = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['DSO_reinforce']['Network']
+
     params['owner_subsidies'] = owner_subsidies[h]
     params['renter_subsidies'] = renter_subsidies[h]
+    params['ECM_subsidies'] = ECM_subsidies['Network']
+    params['Costs_Unit_inv_district'] = Costs_Unit_inv_district
+    params['Costs_rep_district'] = Costs_rep_district
+    params['DSO_reinforce'] = DSO_reinforce
 
     lambdas = result[Scn_ID][Pareto_ID][iter - 1]["df_DW"]['lambda']
     df_sc_f = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff_f"]["Cost_self_consumption"]["Electricity"]
     df_sc = df_sc_f * lambdas
-    cost_self_consumption = df_sc.groupby(level='Hub').sum()
+    cost_self_consumption = df_sc.groupby(level=('Hub','Period','Time')).sum()
     params['Cost_self_consumption'] = cost_self_consumption[[h]]
 
-    df_cost_supply_f = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff_f"]["Cost_supply_district"]
-    df_cost_supply = df_cost_supply_f * lambdas
-    cost_supply_district = df_cost_supply.groupby(level=('Hub', 'ResourceBalances')).sum()
-    params['Cost_supply_district'] = cost_supply_district[[h]]
+    df_cost_supply = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff"]["Cost_supply_district"]
+    #cost_supply_district = df_cost_supply.groupby(level=('Hub', 'ResourceBalances','Period','Time')).sum()
+    #params['Cost_supply_district'] = cost_supply_district[[h]]
+    params['Cost_supply_district'] = df_cost_supply.xs(h,level='Hub',drop_level = False).swaplevel(0,1)
 
-    df_cost_demand_f = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff_f"]["Cost_demand_district"]
-    df_cost_demand = df_cost_demand_f * lambdas
-    cost_demand_district = df_cost_demand.groupby(level=('Hub', 'ResourceBalances')).sum()
-    params['Cost_demand_district'] = cost_demand_district[[h]]
+    df_cost_demand = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff"]["Cost_demand_district"]
+    params['Cost_demand_district'] = df_cost_demand.xs(h,level='Hub',drop_level = False).swaplevel(0,1)
+    #df_cost_demand = df_cost_demand_f * lambdas
+    #cost_demand_district = df_cost_demand.groupby(level=('Hub', 'ResourceBalances')).sum()
+    #params['Cost_demand_district'] = cost_demand_district[[h]]
 
     return params
 
@@ -104,29 +112,26 @@ def get_actor_expenses(actor, building, last_MP_results=None, last_SP_results=No
     if actor.lower() == "renters":
         renter_expense = last_MP_results['df_District']['renter_expense'][building]
         renter_subsidies = last_MP_results['df_District']['renter_subsidies'][building]
-        #rent_fix = last_MP_results['df_District']['C_rent_fix']
-        #tariff_supply = last_MP_results['df_Actors_tariff']['Cost_supply_district']['Electricity']
-        #supply = {b: tariff_supply[b] * last_SP_results[b]['df_Grid_t']['Grid_supply']['Electricity'].xs(b, level='Hub').sum()
-        #         for b in last_SP_results}
-        #rent_exp = {b: rent_fix[b] + supply[b] + cost_sc[b] for b in last_SP_results}
+
         return renter_expense - renter_subsidies
 
     elif actor.lower() == "owner":
         owner_prof   = last_MP_results['df_District']['owner_profit'][building]
         owner_sub   =  last_MP_results['df_District']['owner_subsidies'][building]
         owner_inv   =  last_MP_results['df_District']['Costs_inv'][building]
-        owner_upfront   =  last_MP_results['df_District']['Costs_House_upfront'][building]
         owner_pir_min   = last_MP_results['Samples']['Owner_PIR_min'].iloc[0,0]
 
-        owner_exp = owner_prof + owner_sub - owner_pir_min * (owner_inv + owner_upfront)
+        owner_exp = owner_prof + owner_sub #- owner_pir_min * owner_inv
         return owner_exp
 
-    elif actor.lower() == "utility":
-        tariff_supply = last_MP_results['df_Actors_tariff']['Cost_supply_district']['Electricity'][building]
-        tariff_dmd    = last_MP_results['df_Actors_tariff']['Cost_demand_district']['Electricity'][building]
-        util_exp = (tariff_supply * last_SP_results[building]['df_Grid_t']['Grid_supply']['Electricity'].xs(building, level='Hub').sum()
-                    - tariff_dmd  * last_SP_results[building]['df_Grid_t']['Grid_demand']['Electricity'].xs(building, level='Hub').sum())
-        return util_exp
+    elif actor.lower() == "ecm":
+        ECM_profit = last_MP_results['df_Actors_expense']['ECM_profit']['Network']
+        ECM_subsidies = last_MP_results['df_District']['ECM_subsidies']['Network']
+        return ECM_profit + ECM_subsidies
+
+    elif actor.lower() == "dso":
+        DSO_profit= last_MP_results['df_Actors_expense']['ECM_profit']['Network']
+        return DSO_profit
 
     else:
         raise ValueError(f"Unknown actor: {actor}")
