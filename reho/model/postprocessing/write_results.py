@@ -662,21 +662,23 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
         df3 = get_ampl_data(ampl, 'C_op_owners_to_ECM')
         df4 = get_ampl_data(ampl, 'C_op_ECM_to_owners')
         df5 = get_ampl_data(ampl, 'C_op_ECM_to_DSO')
+        df6 = get_ampl_data(ampl, 'C_op_DSO_to_ECM')
+        df7 = get_ampl_data(ampl, 'C_op_DSO_with_extern')
 
-        df6 = get_ampl_data(ampl, 'Costs_House_inv') # total investment of units of the buildings (exc. Costs_House_init)
-        df6.columns = ["owner_inv"]
-        df7 = get_ampl_data(ampl, 'owner_profit') # owners' profits without subsidies
-        df8 = get_ampl_data(ampl, 'renter_expense') # renters' expenses with subsidies
-        df9 = get_ampl_data(ampl, 'renter_subsidies')
-        df10= get_ampl_data(ampl, 'owner_subsidies')
-        df11 = get_ampl_data(ampl, 'ECM_profit')
-        df12 = get_ampl_data(ampl, 'ECM_subsidies')
-        df13 = get_ampl_data(ampl, 'is_ins')
-        df14 = tau[0] * get_ampl_data(ampl, 'DSO_reinforce')
-        df15 = get_ampl_data(ampl, 'DSO_profit')
+        df8 = get_ampl_data(ampl, 'Costs_House_inv') # total investment of units of the buildings (exc. Costs_House_init)
+        df8.columns = ["owner_inv"]
+        df9 = get_ampl_data(ampl, 'owner_profit') # owners' profits without subsidies
+        df10 = get_ampl_data(ampl, 'renter_expense') # renters' expenses with subsidies
+        df11 = get_ampl_data(ampl, 'renter_subsidies')
+        df12= get_ampl_data(ampl, 'owner_subsidies')
+        df13 = get_ampl_data(ampl, 'ECM_profit')
+        df14 = get_ampl_data(ampl, 'ECM_subsidies')
+        df15 = get_ampl_data(ampl, 'is_ins')
+        df16 = tau[0] * get_ampl_data(ampl, 'DSO_reinforce')
+        df17 = get_ampl_data(ampl, 'DSO_profit')
 
 
-        df_Actors = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11,df12, df13, df14, df15], axis=1)
+        df_Actors = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11,df12, df13, df14, df15, df16, df17], axis=1)
         df_network = df_Actors.sum(axis=0).to_frame().T.set_index(pd.Index(["Network"]))
         df_Actors = pd.concat([df_Actors, df_network], axis=0)
         df_Results["df_District"] = pd.concat([df_Results["df_District"], df_Actors], axis=1)

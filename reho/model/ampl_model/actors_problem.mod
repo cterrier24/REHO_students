@@ -60,7 +60,7 @@ subject to Renter_noSub{h in House}:
 renter_subsidies[h] = 0;
 
 subject to Renter_epsilon{h in House}: #nu_renters
-renter_expense[h] - renter_subsidies[h] <= (41-15.3) * ERA[h]; #renter_expense_max[h];
+renter_expense[h] - renter_subsidies[h] <= (41-15.3) * ERA[h]; # - is_ins[h] * Costs_ins[h]; #renter_expense_max[h];
 
 subject to obj_fct1:
 objective_functions["Renters"] = sum{h in House}(renter_expense[h]);
@@ -82,7 +82,7 @@ param ins_target default 0;
 var is_ins{h in House} binary; 
 
 subject to Insulation_rate:
-sum{h in House} (is_ins[h] * ERA[h]) >= ins_target * sum{h in House} (ERA[h]);
+sum{h in House} (is_ins[h] * ERA[h]) >= ins_target * sum{h in House} ERA[h];
 
 var renovation{h in House};
 
@@ -101,7 +101,7 @@ subject to Owner_profit_calc{h in House}:
 owner_profit[h] = C_op_renters_to_owners[h] + C_op_ECM_to_owners[h] - C_op_owners_to_ECM[h] - Costs_House_inv[h];
 
 subject to Owner_epsilon{h in House}: 
-owner_profit[h] + owner_subsidies[h] >= 0 ; #owner_PIR_min * Costs_House_inv[h];
+owner_profit[h] + owner_subsidies[h] >= i_rate * Costs_House_inv[h]; #owner_PIR_min * Costs_House_inv[h];
 
 subject to Owner_noSub{h in House}:
 owner_subsidies[h] = 0;
@@ -115,19 +115,26 @@ objective_functions["Owners"] = - sum{h in House}(owner_profit[h]);
 param ECM_profit_min default -1e-6;
 var ECM_profit;
 var C_op_ECM_to_DSO;
+var C_op_DSO_to_ECM; 
 
 subject to ECM{h in House}: 
 C_op_ECM_to_owners[h] = sum{l in ResourceBalances, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_demand_district[l,f,h,p,t] * Grid_demand[l,f,h,p,t] * dp[p] * dt[p]);
 
+#subject to ECM2:
+#C_op_ECM_to_DSO = sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t] + Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t])) 
+#                     + 0.02 * sum{h in House, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]}(lambda[f,h] * Grid_demand["Electricity",f,h,p,t] * dp[p] * dt[p]); 
+
 subject to ECM2:
-C_op_ECM_to_DSO = sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t] + Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t])) 
-                     + 0.02 * sum{h in House, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]}(lambda[f,h] * Grid_demand["Electricity",f,h,p,t] * dp[p] * dt[p]); 
+C_op_ECM_to_DSO = sum{p in PeriodStandard, t in Time[p]} Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t] * dp[p] * dt[p]; 
+
+subject to ECM3:
+C_op_DSO_to_ECM = sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t] * dp[p] * dt[p];
 
 subject to ECM_profit_calc:
-ECM_profit = sum{h in House} (C_op_renters_to_ECM[h] + C_op_owners_to_ECM[h] - C_op_ECM_to_owners[h]) - C_op_ECM_to_DSO - Costs_op - tau * sum{u in Units} (Costs_Unit_inv[u] - Costs_rep);
+ECM_profit = sum{h in House} (C_op_renters_to_ECM[h] + C_op_owners_to_ECM[h] - C_op_ECM_to_owners[h]) - C_op_ECM_to_DSO + C_op_DSO_to_ECM - tau * sum{u in Units} (Costs_Unit_inv[u] - Costs_rep);
 
 subject to ECM_epsilon:
-ECM_profit + ECM_subsidies >= ECM_profit_min;
+ECM_profit + ECM_subsidies >= 0; #i_rate * tau * sum{u in Units} (Costs_Unit_inv[u] - Costs_rep);
 
 subject to obj_fct3:
 objective_functions["ECM"] = - ECM_profit;
@@ -138,13 +145,18 @@ objective_functions["ECM"] = - ECM_profit;
 #--------------------------------------------------------------------------------------------------------------------#
 var DSO_profit;
 var DSO_reinforce;
+var C_op_DSO_with_extern;
 param DSO_profit_min default -1e-6;
 
 subject to DSO_expense: 
 DSO_reinforce = sum{l in ResourceBalances} (Cost_network_inv1[l]*Use_Network_capacity[l]+Cost_network_inv2[l] * (Network_capacity[l]-Network_ext[l] * (1- Use_Network_capacity[l])));
 
+subject to DSO1:
+C_op_DSO_with_extern = 0.65 * sum{p in PeriodStandard, t in Time[p]} Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t] * dp[p] * dt[p] 
+                     - 0.49 * sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_supply["Electricity",p,t] * dp[p] * dt[p];
+
 subject to DSO_profit_calc:
-DSO_profit =  C_op_ECM_to_DSO - tau * DSO_reinforce;
+DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_with_extern - tau * DSO_reinforce;
 
 subject to DSO_epsilon:
 DSO_profit >= DSO_profit_min; 

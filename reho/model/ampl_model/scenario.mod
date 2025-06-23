@@ -64,10 +64,6 @@ var test{h in House};
 subject to obj_test{h in House}:
 test[h] = sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} (Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]); 
 
-var test_dpdt;
-subject to dpdt:
-test_dpdt = sum{p in Period, t in Time[p]}(dp[p]*dt[p]);
-
 subject to obj_renters{h in House}:
 objective_renters[h] = sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_supply_district[h,l,p,t]* Grid_supply[l,h,p,t] * dp[p] * dt[p]) 
                     + sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])
@@ -96,7 +92,7 @@ objective_DSO = sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_cst["
             - DSO_reinforce;
 
 subject to actors_costs_SP:
-cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) - sum{h in House} (nu_Owners[h] * objective_owners[h]) + nu_ECM * objective_ECM + nu_DSO * objective_DSO;
+cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) - sum{h in House} (nu_Owners[h] * objective_owners[h]);# - nu_ECM * objective_ECM - nu_DSO * objective_DSO;
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Decomposition
