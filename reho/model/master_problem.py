@@ -441,8 +441,8 @@ class MasterProblem:
         ampl_MP.cd(path_to_ampl_model)
         ampl_MP.read('master_problem.mod')
 
-        if self.method["actors_problem"]:
-            ampl_MP.read('actors_problem.mod')
+        #if self.method["actors_problem"]:
+        #    ampl_MP.read('actors_problem.mod')
 
         # Load battery units (district-scale, but same model as building-scale)
         ampl_MP.cd(path_to_units)
@@ -487,6 +487,10 @@ class MasterProblem:
                 ampl_MP.read("H2storage_IP.mod")
             if "CO2_storage_IP_district" in self.infrastructure.UnitsOfDistrict:
                 ampl_MP.read("CO2storage_IP.mod")
+
+        if self.method["actors_problem"]:
+            ampl_MP.cd(path_to_ampl_model)
+            ampl_MP.read('actors_problem.mod')
 
         clustering_directory = os.path.join(path_to_clustering, self.local_data['File_ID'])
         ampl_MP.cd(clustering_directory)

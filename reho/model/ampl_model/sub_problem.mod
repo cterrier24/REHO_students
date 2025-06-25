@@ -529,12 +529,12 @@ sum{h in House} (Grid_demand[l,h,p,t]) = Network_demand[l,p,t];
 #--------------------------------------------------------------------------------------------------------------------#
 # Avoid circular flow
 #--------------------------------------------------------------------------------------------------------------------#
-#var grid_flow_direction{l in ResourceBalances, h in HousesOfLayer[l], p in Period, t in Time[p]} binary; # 1 if supply-on, 0 if demand-on
-#subject to Supply_on_when_demand_off{l in ResourceBalances, h in HousesOfLayer[l], p in Period, t in Time[p]}:
-#	Grid_supply[l,h,p,t] <= Line_ext[h,l] * grid_flow_direction[l,h,p,t];
+var grid_flow_direction{l in ResourceBalances, h in HousesOfLayer[l], p in Period, t in Time[p]} binary; # 1 if supply-on, 0 if demand-on
+subject to Supply_on_when_demand_off{l in ResourceBalances, h in HousesOfLayer[l], p in Period, t in Time[p]}:
+	Grid_supply[l,h,p,t] <= Line_ext[h,l] * grid_flow_direction[l,h,p,t];
 
-#subject to Supply_off_when_demand_on{l in ResourceBalances, h in HousesOfLayer[l], p in Period, t in Time[p]}:
-#   Grid_demand[l,h,p,t] <= Line_ext[h,l] * (1 - grid_flow_direction[l,h,p,t]);
+subject to Supply_off_when_demand_on{l in ResourceBalances, h in HousesOfLayer[l], p in Period, t in Time[p]}:
+   Grid_demand[l,h,p,t] <= Line_ext[h,l] * (1 - grid_flow_direction[l,h,p,t]);
 
 
 

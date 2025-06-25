@@ -676,9 +676,12 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
         df15 = get_ampl_data(ampl, 'is_ins')
         df16 = tau[0] * get_ampl_data(ampl, 'DSO_reinforce')
         df17 = get_ampl_data(ampl, 'DSO_profit')
+        df18 = get_ampl_data(ampl, 'c_EV')
+        df19 = get_ampl_data(ampl, 'C_renters_mobility')
 
 
-        df_Actors = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11,df12, df13, df14, df15, df16, df17], axis=1)
+
+        df_Actors = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11,df12, df13, df14, df15, df16, df17, df18, df19], axis=1)
         df_network = df_Actors.sum(axis=0).to_frame().T.set_index(pd.Index(["Network"]))
         df_Actors = pd.concat([df_Actors, df_network], axis=0)
         df_Results["df_District"] = pd.concat([df_Results["df_District"], df_Actors], axis=1)

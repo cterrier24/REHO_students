@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Set building parameters
     reader = QBuildingsReader()
     reader.establish_connection('Suisse')
-    qbuildings_data = reader.read_db(district_id= 2877, nb_buildings=12)
+    qbuildings_data = reader.read_db(district_id= 9672, nb_buildings=16)
     qbuildings_data = remove_nan_QBuilding(qbuildings_data)
     #2877 egid=['1017073/1017074', '1017109', '1017079', '1030377/1030380'])
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     scenario["name"] = "actors"
 
     # Choose energy system structure options
-    scenario['exclude_units'] = []
+    scenario['exclude_units'] = [ 'Bike_district','ICE_district', 'ElectricBike_district']
     scenario['enforce_units'] = []
 
     # Set method options
@@ -49,23 +49,23 @@ if __name__ == '__main__':
               "save_streams": False, "save_timeseries": False, "save_data_input": True}
 
     # Initialize available units and grids
-    grids = infrastructure.initialize_grids(available_grids={'Electricity': {}, 'NaturalGas': {}, 'Heat':{}, 'Biomethane':{}, 'Mobility': {}
-                                                             })
+    grids = infrastructure.initialize_grids({'Electricity': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 0.3},
+                                             'NaturalGas': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
+                                             'Gasoline': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
+                                             'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 5}})
 
-    parameters = {"TransformerCapacity": np.array([5600, 1e8])}
-    units = infrastructure.initialize_units(scenario=scenario, grids= grids, district_data=True)
+    # available capacities of networks [Electricity]
+    grids["Electricity"]["ReinforcementOfNetwork"] = np.array([250, 400, 630, 1000, 2000, 4000])
+    grids["Mobility"]["ReinforcementOfNetwork"] = np.array([2000])
+    grids["Gasoline"]["ReinforcementOfNetwork"] = np.array([2000])
 
-    # Set parameters
-    #era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
+    # existing capacities of networks
+    Network_ext = pd.DataFrame([250, 2000, 2000, 2000], index=["Electricity", "NaturalGas", "Gasoline", "Mobility"],
+                               columns=["Network_ext"])
+    parameters = {'Network_ext': Network_ext, "DailyDist": {'short': 10}, "Population": 20, "ff_EV": 1.56}
+    set_indexed = {"Distances": ["short"]}
 
-    # here Population is scaled to the number of buildings being optimized (CH : 46m²/cap on average )
-    # 35 km/cap/day, 2 categories of distance (D0 : short and D1 : long)
-    #parameters = {"Population": era / 46, "DailyDist": {'D0': 25, 'D1': 10}}
-
-    # min max share for each mobility mode and each distance
-    #modal_split = pd.DataFrame({"min_D0": [0, 0, 0.4, 0.3], "max_D0": [0.1, 0.3, 0.7, 0.7],
-    #                           "min_D1": [0, 0.2, 0.4, 0.3], "max_D1": [0, 0.4, 0.7, 0.7]},
-    #                          index=['MD', 'PT', 'cars', 'EV_district'])
+    units = infrastructure.initialize_units(scenario, grids, district_data=True)
 
     # Define maximum rent affordable (optional)
     reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, grids=grids, cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 5}, solver="gurobiasl")

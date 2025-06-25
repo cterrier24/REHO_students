@@ -52,6 +52,7 @@ param ECM_subsidies default 0;
 
 param Costs_Unit_inv_district default 0;
 param Costs_rep_district default 0;
+param C_renters_mobility{h in House} default 0;
 param DSO_reinforce default 0;
 
 var cost_actors;
@@ -61,16 +62,28 @@ var objective_ECM;
 var objective_DSO;
 
 var test{h in House};
-subject to obj_test{h in House}:
-test[h] = sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} (Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]); 
+#subject to obj_test{h in House, p in Period, t in Time[p] }:
+#Grid_demand['Electricity',h,p,t] <= sum{up in UnitsOfType['PV'] inter UnitsOfHouse[h]} Units_supply['Electricity',up,p,t] 
+#                                    + sum{ub in UnitsOfType['Battery'] inter UnitsOfHouse[h]} Units_supply['Electricity',ub,p,t]; 
+
+#subject to obj_test2{h in House, p in Period, t in Time[p] }:
+#Grid_supply['Electricity',h,p,t] <= sum{j in MB_Units['Electricity',h]} Units_demand['Electricity',j,p,t] 
+#                                    + Domestic_electricity[h,p,t];
+
 
 subject to obj_renters{h in House}:
-objective_renters[h] = sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_supply_district[h,l,p,t]* Grid_supply[l,h,p,t] * dp[p] * dt[p]) 
-                    + sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])
-                    - renter_subsidies[h];
+objective_renters[h] = - sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_supply_district[h,l,p,t]* Grid_supply[l,h,p,t] * dp[p] * dt[p]) 
+                    - sum{p in Period, t in Time[p]}(((sum{u in UnitsOfType['PV'] inter UnitsOfHouse[h]}Units_supply['Electricity',u,p,t] +
+                                                     sum{ u in UnitsOfType['Battery'] inter UnitsOfHouse[h]}Units_supply['Electricity',u,p,t]) 
+                                                        - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])
+                    - C_renters_mobility[h]
+                    + renter_subsidies[h];
 
+#sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])  
 subject to obj_owners{h in House}:
-objective_owners[h] = sum{p in Period, t in Time[p], u in UnitsOfType['PV'] inter UnitsOfHouse[h]} ((Units_supply['Electricity',u,p,t] - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])  
+objective_owners[h] = sum{p in Period, t in Time[p]}(((sum{u in UnitsOfType['PV'] inter UnitsOfHouse[h]}Units_supply['Electricity',u,p,t] +
+                                                     sum{ u in UnitsOfType['Battery'] inter UnitsOfHouse[h]}Units_supply['Electricity',u,p,t]) 
+                                                        - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])
                     + sum{l in ResourceBalances, p in Period, t in Time[p]} (Cost_demand_district[h,l, p, t] * Grid_demand[l,h,p,t] *dp[p]*dt[p])  
                     - sum{l in ResourceBalances} Costs_grid_connection_House[l,h] 
                     - Costs_House_inv[h] * tau
@@ -92,7 +105,7 @@ objective_DSO = sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_cst["
             - DSO_reinforce;
 
 subject to actors_costs_SP:
-cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) - sum{h in House} (nu_Owners[h] * objective_owners[h]);# - nu_ECM * objective_ECM - nu_DSO * objective_DSO;
+cost_actors = sum{h in House} ( nu_Renters[h] * objective_renters[h]) - sum{h in House} (nu_Owners[h] * objective_owners[h]);# - nu_ECM * objective_ECM - nu_DSO * objective_DSO;
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Decomposition
@@ -140,7 +153,7 @@ GWP_op + GWP_constr + EMOO_slack_gwp = EMOO_GWP*(sum{h in House} ERA[h]);
 subject to EMOO_grid_constraint{l in ResourceBalances,hl in HousesOfLayer[l],p in PeriodStandard,t in Time[p]: l = 'Electricity' }:
 Grid_supply[l,hl,p,t] - Grid_demand[l,hl,p,t]  <= if EMOO_grid!=0 then EMOO_grid*sum{i in Time[p]}((Grid_supply[l,hl,p,i] - Grid_demand[l,hl,p,i] )*dt[p])/(card(Time[p])) else 1e8;
 
-subject to EMOO_network_constraint{l in ResourceBalances,p in PeriodStandard,t in Time[p]: l = 'Electricity' }:
+subject to EMOO_network_constraint{l in ResourceBalances,p in PeriodStandard,t in Time[p]: l = 'Electricity'}:
 Network_supply[l,p,t] - Network_demand[l,p,t] <= if EMOO_network!=0 then EMOO_network*sum{i in Time[p]}((Network_supply[l,p,i] - Network_demand[l,p,i])*dt[p])/(card(Time[p])) else 1e8;
 
 subject to EMOO_GU_demand_constraint{l in ResourceBalances,p in PeriodStandard,t in Time[p]: l = 'Electricity'}:

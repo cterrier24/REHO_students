@@ -37,6 +37,10 @@ subject to size_cstr6{l in ResourceBalances, f in FeasibleSolutions, h in House,
 param PV_prod{f in FeasibleSolutions, h in House, p in Period, t in Time[p]};
 param PV_self_consummed{f in FeasibleSolutions, h in House, p in Period, t in Time[p]} :=  PV_prod[f,h,p,t] - Grid_demand["Electricity",f,h,p,t];
 
+#EV-Service Price (CHF/km/person)
+var c_EV; 
+var C_renters_mobility{h in House};
+
 #--------------------------------------------------------------------------------------------------------------------#
 # Renters constraints
 #--------------------------------------------------------------------------------------------------------------------#
@@ -47,8 +51,11 @@ var renter_expense{h in House};
 var C_op_renters_to_ECM{h in House} >= 0;
 var C_op_renters_to_owners{h in House} >= 0;
 
+subject to Costs_Renter_Mobility{h in House}:
+C_renters_mobility[h] = c_EV * sum{dist in Distances}(DailyDist[dist] * ERA[h] / 46) ;
+
 subject to Costs_opex_renter_ECM{h in House}:
-C_op_renters_to_ECM[h] = sum{l in ResourceBalances, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_supply_district[l,f,h,p,t]* Grid_supply[l,f,h,p,t] * dp[p] * dt[p]);
+C_op_renters_to_ECM[h] = sum{l in ResourceBalances, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_supply_district[l,f,h,p,t]* Grid_supply[l,f,h,p,t] * dp[p] * dt[p]) + C_renters_mobility[h];
 
 subject to Costs_opex_renter_owner{h in House}:
 C_op_renters_to_owners[h] = sum{f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_self_consumption[f,h,p,t] * PV_self_consummed[f,h,p,t] * dp[p] * dt[p]);
