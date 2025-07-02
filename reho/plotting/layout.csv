@@ -106,3 +106,15 @@ ElectricBike_district,Electric bikes,EBike,Vélos électriques,#00FF7F,springgre
 Total_EV_fleet,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise
 EV_district,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise
 EV_charger_district,EV charging station,EVchrg,Stations de recharge,#008080,teal
+,,,,,
+Reinforcement,Grid reinforcement,GridReinf,Renforcement,#5A626B,grey
+,,,,,
+,,,,,
+HeatPump_Air_10,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Air_50,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Air_400,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Geothermal_10,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon
+HeatPump_Geothermal_50,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon
+HeatPump_Geothermal_400,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon
+PV_100,PV panel,PV,Panneaux photovoltaïques,#ffd980,yellow_light
+PV_20,PV panel,PV,Panneaux photovoltaïques,#ffd980,yellow_light

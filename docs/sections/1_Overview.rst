@@ -42,6 +42,10 @@ technologies (ICT) end-use demand.
 fuels, biomass, biofuels, hydrogen, and district heating and cooling networks.
 This holistic approach ensures a comprehensive representation of the energy landscape.
 
+**Multi-Actor Interaction:** REHO captures the roles and interactions of diverse stakeholders in energy communities
+consisting of tenants, landlords, the utility company, and the municipality. It allocates costs to each actor and reveals
+their individual constraints within the community.
+
 **Open-Source and Interoperability:** REHO is fully open-source, supported by comprehensive documentation. It
 utilizes AMPL for the core optimization model, encompassing objective functions, modeling equations, and constraints
 (e.g., energy and mass balances, heating cascade). Python is employed for efficient data management, boasting the
@@ -88,6 +92,9 @@ Buildings are optimized inter-dependently, by applying the Dantzig-Wolfe decompo
 problem into a master problem and subproblems. The master problem adopts the transformer perspective,
 while a subproblem is defined for each building connected to this transformer.
 
+In the actor model, each energy community is further characterized by its median income level, which indicates its
+socio-economic capacity to cover local rental expenditures.
+
 PV integration
 --------------
 
@@ -121,3 +128,11 @@ District heating and cooling
 District heating and cooling (DHC) systems have a large potential to support the decarbonization of the heating and cooling needs.
 REHO enables the deployment of DHC, with consideration of several heat transfer fluids and distribution temperatures.
 Infrastructure costs are also incorporated, based on the topology of the considered neighbourhood.
+
+Building renovation
+----------------------------
+
+Energy retrofitting is widely recognized as an effective strategy for reducing energy consumption by enhancing the thermal
+performance of the building envelope, upgrading heating systems, and optimizing overall building operation.
+REHO integrates targeted insulation renovation measures to lower a building’s heat-transmittance coefficient and thus
+reduce its heating demand. Its optimization framework simultaneously accounts for the costs and GEG associated with each level of refurbishment.

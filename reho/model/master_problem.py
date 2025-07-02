@@ -121,7 +121,7 @@ class MasterProblem:
         self.DW_params = self.initialise_DW_params(self.DW_params, self.cluster, self.buildings_data)
 
         # TODO change the nomenclature of these parameters to semi-automate the separation between MP and SP: (ex: all MP parameters end with _MP)
-        self.lists_MP = {"list_parameters_MP": ['Uh', 'Uh_ins', 'ins_target', 'renter_subsidies_bound', 'renter_expense_max','ECM_profit_min',
+        self.lists_MP = {"list_parameters_MP": ["Self_consumption", 'Uh', 'Uh_ins', 'ins_target', 'renter_subsidies_bound', 'renter_expense_max','ECM_profit_min',
                                                 'owner_PIR_max', 'owner_PIR_min','ECM_profit_min', 'EMOO_totex_renter',
                                                 'Network_ext',
                                                 'monthly_grid_connection_cost',
@@ -130,7 +130,7 @@ class MasterProblem:
                                                 'EV_y', 'EV_plugged_out', 'n_vehicles', 'EV_capacity',
                                                 "max_share", "min_share", "max_share_modes", "min_share_modes", "n_ICEperhab",
                                                 "Cost_network_inv1", "Cost_network_inv2", "GWP_network_1", "GWP_network_2", "Units_Ext_district",
-                                                "Network_lifetime"],
+                                                "Network_lifetime", "ff_EV"],
                          "list_constraints_MP": [],
                          "list_set_indexed_MP": ["Districts", "Distances"]
                          }
@@ -507,19 +507,21 @@ class MasterProblem:
         df_Performance = df_Performance.drop(index='Network', level='Hub').groupby(level=['Scn_ID', 'Pareto_ID', 'FeasibleSolution', 'Hub']).head(1).droplevel(
             'Hub')  # select current Scn_ID and Pareto_ID
         df_Grid_t = np.round(self.return_combined_SP_results(self.results_SP, 'df_Grid_t'), 6)
+        df_Unit_t = np.round(self.return_combined_SP_results(self.results_SP, 'df_Unit_t'), 6)
         df_Buildings = self.return_combined_SP_results(self.results_SP, 'df_Buildings')
         df_Buildings = df_Buildings[df_Buildings.index.get_level_values('house') == df_Buildings.index.get_level_values('Hub')].droplevel('Hub')
 
         # apply slicing or level-dropping uniformly to all three DataFrames
-        dfs = [df_Performance, df_Grid_t, df_Buildings]
+        dfs = [df_Performance, df_Grid_t, df_Unit_t,df_Buildings]
         if not self.method['include_all_solutions']:
             dfs = [df.xs((Scn_ID, Pareto_ID), level=('Scn_ID', 'Pareto_ID')) for df in dfs]
         else:
             dfs = [df.droplevel(['Scn_ID', 'Pareto_ID']) for df in dfs]
-        df_Performance, df_Grid_t, df_Buildings = dfs
+        df_Performance, df_Grid_t, df_Unit_t, df_Buildings = dfs
 
         df_Performance = df_Performance.droplevel(level='Iter')
         df_Grid_t = df_Grid_t.droplevel(level=['Iter', 'Hub']).reorder_levels(['Layer', 'FeasibleSolution', 'house', 'Period', 'Time'])
+        df_Unit_t = df_Unit_t.droplevel(level=['Iter']).reorder_levels(['Layer','FeasibleSolution', 'house', 'Unit', 'Period', 'Time'])
         df_Buildings = df_Buildings.droplevel(level='Iter')
 
         # assign data
@@ -589,13 +591,14 @@ class MasterProblem:
             if "ActorObjective" in self.set_indexed:
                 MP_set_indexed['ActorObjective'] = self.set_indexed["ActorObjective"]
 
-            df_Unit_t = self.return_combined_SP_results(self.results_SP, 'df_Unit_t').xs("Electricity", level="Layer")
-            df_PV_t = pd.DataFrame()
-            for bui in self.infrastructure.houses:
-                df_PV_t = pd.concat([df_PV_t, df_Unit_t.xs("PV_" + bui, level="Unit")])
-            MP_parameters["PV_prod"] = df_PV_t["Units_supply"].droplevel(["Scn_ID", "Pareto_ID", "Iter"])
+            #df_Unit_t = self.return_combined_SP_results(self.results_SP, 'df_Unit_t').xs("Electricity", level="Layer")
+            #df_PV_t = pd.DataFrame()
+            #for bui in self.infrastructure.houses:
+            #    df_PV_t = pd.concat([df_PV_t, df_Unit_t.xs("PV_" + bui, level="Unit")])
+            #MP_parameters["PV_prod"] = df_PV_t["Units_supply"].droplevel(["Scn_ID", "Pareto_ID", "Iter"])
             MP_parameters["Uh"] = np.asarray([self.buildings_data[house]['U_h'] for house in self.buildings_data.keys()])
             MP_parameters["Uh_ins"] = df_Buildings.U_h
+            MP_parameters["Self_consumption"] = actors.get_self_consumption(df_Unit_t, df_Grid_t)
 
         if "Heat" in self.infrastructure.grids.keys():
             if 'T_DHN_supply_cst' and 'T_DHN_return_cst' in self.parameters:
@@ -919,10 +922,9 @@ class MasterProblem:
                 nu["Owners"] = self.get_dual_values_SPs(Scn_ID, Pareto_ID, self.iter, h, 'nu_Owners').dropna()
                 if scenario['Objective'] == "TOTEX_actor":
                     nu[self.set_indexed["ActorObjective"][0]] = 1.0
-                rc_actors[h] = nu["Renters"][h] * actors.get_actor_expenses('Renters', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)\
-                               -nu["ECM"] * actors.get_actor_expenses('ECM', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results) \
-                               -nu["DSO"] * actors.get_actor_expenses('DSO', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results) \
-                               -nu["Owners"][h] * actors.get_actor_expenses('Owner', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)
+                rc_actors[h] = - nu["Renters"][h] * actors.get_actor_expenses('Renters', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)\
+                            + nu["Owners"][h] * actors.get_actor_expenses('Owner', h, last_MP_results=last_MP_results, last_SP_results=last_SP_results)
+
 
         # calculate objective function for each Pareto_ID with latest dual values
         reduced_cost = pd.DataFrame()

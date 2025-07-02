@@ -677,7 +677,7 @@ def get_df_Results_from_MP(ampl, binary=False, method=None, district=None, read_
         df16 = tau[0] * get_ampl_data(ampl, 'DSO_reinforce')
         df17 = get_ampl_data(ampl, 'DSO_profit')
         df18 = get_ampl_data(ampl, 'c_EV')
-        df19 = get_ampl_data(ampl, 'C_renters_mobility')
+        df19 = get_ampl_data(ampl, 'C_renters_to_ECM_mobility')
 
 
 

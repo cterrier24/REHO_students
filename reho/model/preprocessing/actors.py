@@ -63,6 +63,7 @@ def get_actor_parameters(scenario, set_indexed, result, Scn_ID, Pareto_ID, iter 
     renter_subsidies = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['renter_subsidies']
     ECM_subsidies = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['ECM_subsidies']
     Costs_Unit_inv_district = result[Scn_ID][Pareto_ID][iter - 1]['df_Unit']['Costs_Unit_inv'].sum()
+    C_renters_mobility = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['C_renters_to_ECM_mobility']
     Costs_rep_district = result[Scn_ID][Pareto_ID][iter - 1]['df_Unit']['Costs_Unit_rep'].sum()
     DSO_reinforce = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['DSO_reinforce']['Network']
 
@@ -72,12 +73,14 @@ def get_actor_parameters(scenario, set_indexed, result, Scn_ID, Pareto_ID, iter 
     params['Costs_Unit_inv_district'] = Costs_Unit_inv_district
     params['Costs_rep_district'] = Costs_rep_district
     params['DSO_reinforce'] = DSO_reinforce
+    params['C_renters_mobility'] = C_renters_mobility[h]
 
     lambdas = result[Scn_ID][Pareto_ID][iter - 1]["df_DW"]['lambda']
     df_sc_f = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff_f"]["Cost_self_consumption"]["Electricity"]
     df_sc = df_sc_f * lambdas
     cost_self_consumption = df_sc.groupby(level=('Hub','Period','Time')).sum()
     params['Cost_self_consumption'] = cost_self_consumption[[h]]
+
 
     df_cost_supply = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff"]["Cost_supply_district"]
     #cost_supply_district = df_cost_supply.groupby(level=('Hub', 'ResourceBalances','Period','Time')).sum()
@@ -135,3 +138,43 @@ def get_actor_expenses(actor, building, last_MP_results=None, last_SP_results=No
 
     else:
         raise ValueError(f"Unknown actor: {actor}")
+
+def get_self_consumption(unit_time_series, grid_time_series):
+    unit_time_series_filtered = unit_time_series.xs('Electricity', level='Layer')
+    grid_time_series_filtered = grid_time_series.xs('Electricity', level='Layer')
+    rows = []
+
+    feasible_solutions = unit_time_series_filtered.index.get_level_values('FeasibleSolution').unique()
+    houses = unit_time_series_filtered.index.get_level_values('house').unique()
+    periods = unit_time_series_filtered.index.get_level_values('Period').unique()
+
+    for fs in feasible_solutions:
+        for h in houses:
+            for p in periods:
+                try:
+                    unit_df = unit_time_series_filtered.xs((fs, h, p), level=['FeasibleSolution', 'house', 'Period'])
+                    grid_df = grid_time_series_filtered.xs((fs, h, p), level=['FeasibleSolution', 'house', 'Period'])
+                except KeyError:
+                    continue
+                available_units = set(unit_df.index.get_level_values('Unit'))
+                name_battery = f'Battery_{h}'
+                name_PV = f'PV_{h}'
+                for t in grid_df.index:
+                    try:
+                        E_grid_demand = grid_df.loc[t, 'Grid_demand']
+                        E_PV = unit_df.loc[(name_PV, t), 'Units_supply']
+                        if name_battery in available_units:
+                            E_charging = unit_df.loc[(name_battery, t), 'Units_demand']
+                            E_discharging = unit_df.loc[(name_battery, t), 'Units_supply']
+                            sc = max(E_PV - E_charging + E_discharging - E_grid_demand, 0)
+                        else:
+                            sc = max(E_PV - E_grid_demand, 0)
+                        rows.append((fs, h, p, t, sc))
+                    except KeyError:
+                        continue
+
+    self_consumption = pd.DataFrame(rows, columns=['FeasibleSolution', 'House', 'Period', 'Time',
+                                                             'Self_consumption'])
+    self_consumption.set_index(['FeasibleSolution', 'House', 'Period', 'Time'], inplace=True)
+
+    return self_consumption

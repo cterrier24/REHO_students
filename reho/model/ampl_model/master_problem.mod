@@ -348,7 +348,7 @@ var ECM_subsidies >= 0;
 subject to penalties_contraints:
 penalties = Costs_cft + penalty_ratio * (Costs_inv + Costs_op +
             sum{l in ResourceBalances,p in PeriodExtreme,t in Time[p]} (Network_supply[l,p,t] + Network_demand[l,p,t]))
-             + sum{h in House}(renter_subsidies[h] + owner_subsidies[h]) + ECM_subsidies;
+             + sum{h in House}(renter_subsidies[h] + owner_subsidies[h]) + ECM_subsidies; #TODO: Seperate the panelties
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Objective functions

@@ -60,7 +60,8 @@ Core of the optimization model (model objectives, constraints, modelling equatio
 - ``units/`` contains the model files specific to each technology that can be used in the system. Three subfolders (``district_units``, ``h2_units``, and ``storage``) are used for easier classification.
 - ``data_stream.dat`` contains values that specify the operating temperatures of streams and energy conversion units.
 - ``master_problem.mod`` contains the modeling of the problem for the decomposition approach.
-- ``sub_problem.mod`` contains the modelling of the energy system with the declaration of all parameters and variables, problem constraints (energy balance, mass balance, heat cascade, etc.). This is the core of the MILP model.
+- ``actors_problem.mod`` contains definitions of actor interactions and their constraints.
+- ``sub_problem.mod`` contains the modeling of the energy system with the declaration of all parameters and variables, problem constraints (energy balance, mass balance, heat cascade, etc.). This is the core of the MILP model.
 - ``scenario.mod`` contains the optimization objective functions, the epsilon constraints, and some specific constraints that can be enabled to model a particular scenario.
 
 **postprocessing/**
@@ -91,12 +92,17 @@ Core of the optimization model (model objectives, constraints, modelling equatio
 
 .. automodule:: reho.model.preprocessing
 
+`actors.py`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: reho.model.preprocessing.actors
+    :members: generate_renter_expense_max_new
+
 `buildings_profiles.py`
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: reho.model.preprocessing.buildings_profiles
     :members:
-
 
 `clustering.py`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,6 +141,12 @@ Core of the optimization model (model objectives, constraints, modelling equatio
 .. automodule:: reho.model.preprocessing.QBuildings
     :members:
 
+`refurbishment.py`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: reho.model.preprocessing.refurbishment
+    :members: refurbishment_cost_co2
+
 `sia_parser.py`
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,6 +174,12 @@ Core of the optimization model (model objectives, constraints, modelling equatio
 ------------------------------
 
 .. automodule:: reho.model.master_problem
+    :members:
+
+*actors_problem.py*
+------------------------------
+
+.. automodule:: reho.model.actors_problem
     :members:
 
 *infrastructure.py*

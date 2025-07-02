@@ -172,79 +172,91 @@ List of symbols
 
     .. tab-item:: Superscripts
 
-        +-----------+-------------------------------+
-        | A         | appliances                    |
-        +-----------+-------------------------------+
-        | B         | building                      |
-        +-----------+-------------------------------+
-        | L         | light                         |
-        +-----------+-------------------------------+
-        | P         | people                        |
-        +-----------+-------------------------------+
-        | bat       | bateobatle                    |
-        +-----------+-------------------------------+
-        | bes       | bes                           |
-        +-----------+-------------------------------+
-        | cap       | cap                           |
-        +-----------+-------------------------------+
-        | chp       | chp                           |
-        +-----------+-------------------------------+
-        | cw        | cw                            |
-        +-----------+-------------------------------+
-        | :math:`-` | demand                        |
-        +-----------+-------------------------------+
-        | dhw       | domestic hot water            |
-        +-----------+-------------------------------+
-        | el        | electricity                   |
-        +-----------+-------------------------------+
-        | ERA       | enery reference area          |
-        +-----------+-------------------------------+
-        | ext       | external                      |
-        +-----------+-------------------------------+
-        | gain      | heat gain                     |
-        +-----------+-------------------------------+
-        | ghi       | global horizontal irradiation |
-        +-----------+-------------------------------+
-        | gr        | grid                          |
-        +-----------+-------------------------------+
-        | hp        | heat pump                     |
-        +-----------+-------------------------------+
-        | int       | internal                      |
-        +-----------+-------------------------------+
-        | inv       | investment                    |
-        +-----------+-------------------------------+
-        | irr       | irradiation                   |
-        +-----------+-------------------------------+
-        | max       | maximum                       |
-        +-----------+-------------------------------+
-        | min       | minimum                       |
-        +-----------+-------------------------------+
-        | net       | netto                         |
-        +-----------+-------------------------------+
-        | ng        | natural gas                   |
-        +-----------+-------------------------------+
-        | op        | operation                     |
-        +-----------+-------------------------------+
-        | pv        | photovoltaic panel            |
-        +-----------+-------------------------------+
-        | r         | return                        |
-        +-----------+-------------------------------+
-        | ref       | reference                     |
-        +-----------+-------------------------------+
-        | rep       | replacement                   |
-        +-----------+-------------------------------+
-        | s         | supply                        |
-        +-----------+-------------------------------+
-        | SH        | space heating                 |
-        +-----------+-------------------------------+
-        | stat      | static                        |
-        +-----------+-------------------------------+
-        | :math:`+` | supply                        |
-        +-----------+-------------------------------+
-        | tot       | total                         |
-        +-----------+-------------------------------+
-        | TR        | transformer                   |
-        +-----------+-------------------------------+
+        +---------------------+-------------------------------+
+        | A                   | appliances                    |
+        +---------------------+-------------------------------+
+        | B                   | building                      |
+        +---------------------+-------------------------------+
+        | L                   | light                         |
+        +---------------------+-------------------------------+
+        | P                   | people                        |
+        +---------------------+-------------------------------+
+        | bat                 | bateobatle                    |
+        +---------------------+-------------------------------+
+        | bes                 | bes                           |
+        +---------------------+-------------------------------+
+        | cap                 | cap                           |
+        +---------------------+-------------------------------+
+        | CEM                 | community energy manager      |
+        +---------------------+-------------------------------+
+        | chp                 | chp                           |
+        +---------------------+-------------------------------+
+        | cw                  | cw                            |
+        +---------------------+-------------------------------+
+        | :math:`-`           | demand                        |
+        +---------------------+-------------------------------+
+        | dhw                 | domestic hot water            |
+        +---------------------+-------------------------------+
+        | el                  | electricity                   |
+        +---------------------+-------------------------------+
+        | ERA                 | energy reference area         |
+        +---------------------+-------------------------------+
+        | ext                 | external                      |
+        +---------------------+-------------------------------+
+        | gain                | heat gain                     |
+        +---------------------+-------------------------------+
+        | ghi                 | global horizontal irradiation |
+        +---------------------+-------------------------------+
+        | gr                  | grid                          |
+        +---------------------+-------------------------------+
+        | hp                  | heat pump                     |
+        +---------------------+-------------------------------+
+        | INS                 | insulation                    |
+        +---------------------+-------------------------------+
+        | int                 | internal                      |
+        +---------------------+-------------------------------+
+        | inv                 | investment                    |
+        +---------------------+-------------------------------+
+        | irr                 | irradiation                   |
+        +---------------------+-------------------------------+
+        | max                 | maximum                       |
+        +---------------------+-------------------------------+
+        | min                 | minimum                       |
+        +---------------------+-------------------------------+
+        | net                 | netto                         |
+        +---------------------+-------------------------------+
+        | ng                  | natural gas                   |
+        +---------------------+-------------------------------+
+        | O                   | Owner                         |
+        +---------------------+-------------------------------+
+        | op                  | operation                     |
+        +---------------------+-------------------------------+
+        | pv                  | photovoltaic panel            |
+        +---------------------+-------------------------------+
+        | R                   | Renter                        |
+        +---------------------+-------------------------------+
+        | r                   | return                        |
+        +---------------------+-------------------------------+
+        | ref                 | reference                     |
+        +---------------------+-------------------------------+
+        | rep                 | replacement                   |
+        +---------------------+-------------------------------+
+        | s                   | supply                        |
+        +---------------------+-------------------------------+
+        | SC                  | self consumption              |
+        +---------------------+-------------------------------+
+        | SH                  | space heating                 |
+        +---------------------+-------------------------------+
+        | stat                | static                        |
+        +---------------------+-------------------------------+
+        | :math:`+`           | supply                        |
+        +---------------------+-------------------------------+
+        | tot                 | total                         |
+        +---------------------+-------------------------------+
+        | TR                  | transformer                   |
+        +---------------------+-------------------------------+
+        | :math:`\rightarrow` | actor's payment               |
+        +---------------------+-------------------------------+
 
     .. tab-item:: Indexes
 
@@ -704,6 +716,15 @@ And solar heat gains proportional to the global irradiation, through a solar gai
 Clearly, comfort should also be taken into account: this is achieved through the introduction of a penalty cost in the optimization problem objective at each hour when the indoor temperature exceeds pre-defined bounds.
 These penalty costs are deduced in a post-computing step.
 
+**Renovation**
+
+When renovation is enabled, each building yields two outcomes: one using the original insulation and one with the retrofit applied.
+Accordingly, the heat-transmittance coefficient :math:`U^h` is replaced by :math:`U^{h,INS}`, reflecting reduced thermal losses:
+
+.. math::
+    \boldsymbol{\dot{Q}_{b,p,t}^{SH,INS}} = \dot{Q}_{b,p,t}^{gain} - U_{b}^{h,INS}  \cdot A^{ERA}_b \cdot (\boldsymbol{T^{int}_{b,p,t}} - T^{ext}_{p,t}) - C^h_b \cdot A^{ERA}_b \cdot (\boldsymbol{T^{int}_{b,p,t+1}} - \boldsymbol{T^{int}_{b,p,t}})  \quad \forall b \in  \text{B} \quad \forall p \in  \text{P} \quad \forall t\in  \text{T}
+
+
 Domestic hot water
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -740,7 +761,6 @@ The main objective functions are similar to the ones in at the building-level.
     	&\boldsymbol{C^{cap}} = \frac{i(1+i)}{(1+i)^n-1}(\boldsymbol{C^{inv}}+\boldsymbol{C^{rep}})
         \label{capex}
     \end{align}
-
 
 Configuration selection
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -807,6 +827,83 @@ The transformer capacity is not a continuous variable. Its values should be with
    &\forall b \in  \text{B} \quad l \in  \text{L} \quad \forall p \in  \text{P} \quad \forall t\in  \text{T}
    \end{align}
 
+
+Actors modeling
+----------------------------------
+Multi-actor modeling captures and balances the interests of possible stakeholders in an energy community.
+Key participants include renters, building owners, the community governance entity, and any community-external municipality that has certain climate goal and providing financial support for achieving the goals.
+Each actor’s interactions and individual constraints are defined alongside district-level constraints.
+
+.. figure:: ../images/actors_interaction.svg
+   :align: center
+
+   Energy community actors and their payment flows modeled in REHO
+
+Renters
+~~~~~~~~~~~~~~~~~~~~~~~~
+Renters' expenses include fixed rent paid to the owner, energy bills paid to the owner, and energy bills paid to the utility company.
+
+.. math::
+        \begin{align}
+            &C_{renter,b} = C^{r \rightarrow o,FIX}_b + C^{r \rightarrow o,EB}_b + C^{r \rightarrow CEM,EB}_b \quad \forall b \in B
+            \label{RenterExpenses}\\
+            &0.8 \cdot \frac{C^{r \rightarrow o,FIX}_h}{A^{ERA}_h} \leq \frac{C^{r \rightarrow o,FIX}_b}{A^{ERA}_b} \leq 1.2 \cdot \frac{C^{r \rightarrow o,FIX}_h}{A^{ERA}_h} \quad \forall h,b \in B, \quad h \neq b
+            \label{FixRent}\\
+            &C^{r \rightarrow o,EB}_{b} = \sum_{i,p,t}c^{\text{SC}}_{f,b} \cdot E^{SC}_{i,b,p,t} \cdot d_p \cdot d_t \quad \forall b \in B
+            \label{EB2O}\\
+            &C^{r \rightarrow CEM,EB}_{b} = \sum_{l,i,p,t}c^{\text{dis},+}_{i,l,b} \cdot E^{\text{gr},+}_{i,b,l,p,t} \cdot d_p \cdot d_t \quad \forall b \in B
+            \label{EB2U}
+        \end{align}
+
+Owners
+~~~~~~~~~~~~~~~~~~~~~~~~
+Owners finance the building and invest in building-scale energy systems. They earn rental income and fees from tenants for on-site energy use,
+and receive payments from the utility for any surplus electricity fed back to the grid.
+
+.. math::
+        \begin{align}
+            &C_{owner,b} = \sum_{i \in I} {\lambda_{i,b} \cdot C_{i,b}^{\text{inv}}} + C^{ini}_b - C^{r \rightarrow o,FIX}_b -C^{r \rightarrow o,EB}_{b} - C^{CEM \rightarrow o,EB}_{b} \quad \forall b \in B
+            \label{OwnerExpenses}\\
+            &C^{CEM \rightarrow o,EB}_{b} = \sum_{l,i,p,t} \lambda_{i,b} \cdot c^{\text{dis},-}_{i,l,b} \cdot E^{\text{gr},-}_{i,b,l,p,t} \cdot d_p \cdot d_t \quad \forall b \in B
+            \label{Utility2Owner}
+        \end{align}
+
+Utility
+~~~~~~~~~~~~~~~~~~~~~~~~
+Utility company coordinates internal energy distribution and manages exchanges with external networks.
+
+.. math::
+        \begin{equation}
+            C_{CEM} = \sum_{b \in B} (C^{CEM \rightarrow o,EB}_{b} - C^{r \rightarrow CEM,EB}_{b}) + C^{op}
+            \label{UtilityExpenses}
+        \end{equation}
+
+Municipality
+~~~~~~~~~~~~~~~~~~~~~~~~
+Municipality provides financial subsidies that help other actors overcoming their bottleneck.
+
+**Epsilon constraints**
+Each epsilon constraint reflects a single actor’s requirements or limitations and relaxed by the subsidies.
+
+.. math::
+        \begin{align}
+            &C^{R}_{b} - S^r_b \le \epsilon^r_b \quad \backsim [\nu^R_b] \quad\forall b\in B
+            \label{RenterEpsilon}\\
+            &C^{O}_{b} + S^o_b \ge \epsilon^o_b \quad \backsim [\nu^O_b] \quad\forall b\in B
+            \label{OwnerEpsilon}\\
+            &C^{CEM} \ge \epsilon^{CEM} \quad \backsim [\nu^{CEM}]
+            \label{UtilityEpsilon}
+        \end{align}
+
+**Objective function**
+To minimize total subsidy outlays, the district‐level energy system’s objective is extended by adding a term that
+penalizes the sum of all subsidies provided.
+
+.. math::
+        \begin{equation}
+            \boldsymbol{C^{obj}} = \boldsymbol{C^{op}} + \boldsymbol{C^{cap}} + \sum_{b \in \text{B}}{(S_b^R+S_b^O)}
+            \label{ActorsObj}
+        \end{equation}
 
 
 Outputs
