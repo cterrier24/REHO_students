@@ -8,7 +8,7 @@ import reho.model.preprocessing.weather as weather
 from reho.model.preprocessing.skydome import irradiation_to_df
 from reho.model.preprocessing.QBuildings import *
 import reho.model.preprocessing.actors as actors
-from reho.model.preprocessing import refurbishment
+from reho.model.preprocessing import refurbishment_calc
 
 __doc__ = """
 File for handling data and optimization for an AMPL sub-problem.
