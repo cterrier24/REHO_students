@@ -39,15 +39,15 @@ if __name__ == '__main__':
         scenario = dict()
         scenario['Objective'] = 'TOTEX'
         scenario['EMOO'] = {}
-        scenario['specific'] =[]
+        scenario['specific'] =['unidirectional_service']
         scenario["name"] = "actors"
 
         # Choose energy system structure options
-        scenario['exclude_units'] = ['Bike_district','EV_district', 'ElectricBike_district','HeatPump', 'Battery','PV']
+        scenario['exclude_units'] = ['Bike_district','EV_district', 'ElectricBike_district','HeatPump', 'Battery','PV', 'EV_Charger_district', 'ThermalSolar']
         scenario['enforce_units'] = []
 
         # Set method options
-        method = {'actors_problem': True, "refurbishment": True, "parallel_computation": True,
+        method = {'actors_problem': True, "refurbishment": False, "parallel_computation": True,
                   "save_streams": False, "save_timeseries": True, "save_data_input": True,"print_logs": True,
                   'district-scale': True}
 
@@ -58,17 +58,17 @@ if __name__ == '__main__':
                                                  'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 3}})
 
         # available capacities of networks [Electricity]
-        grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, 400, 630, 1000, 2000, 4000])
+        grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, df_case_study.loc[case_study]['P_peak'] * 3, 630, 1000, 2000, 4000])
         grids["Mobility"]["ReinforcementOfNetwork"] = np.array([2000])
         grids["Gasoline"]["ReinforcementOfNetwork"] = np.array([2000])
 
         # existing capacities of networks
-        Network_ext = pd.DataFrame([ df_case_study.loc[case_study]['P_peak'] * 3, 2000, 2000, 2000], index=["Electricity", "NaturalGas", "Gasoline", "Mobility"],
+        Network_ext = pd.DataFrame([df_case_study.loc[case_study]['P_peak'] * 3, 2000, 2000, 2000], index=["Electricity", "NaturalGas", "Gasoline", "Mobility"],
                                    columns=["Network_ext"])
 
         era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
 
-        parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46, "ff_EV": 1.56}
+        parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46}
         set_indexed = {"Distances": ["short"]}
 
         units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"REHO/scripts/examples/data/units_adapted.csv")
@@ -78,8 +78,8 @@ if __name__ == '__main__':
                              solver="gurobiasl")
         reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
-        modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1.0, 1.0]},
-                                   index=['MD', 'PT', 'cars', 'ICE_district'])
+        modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1.0, 1.0, 0.0]},
+                                   index=['MD', 'PT', 'cars', 'ICE_district', 'EV_district'])
 
         reho.modal_split = modal_split
         # Set value / sampling range for actors epsilon
@@ -87,8 +87,9 @@ if __name__ == '__main__':
         bounds = {"Owners": [0.0, 0.0], "ECM": [0.0, 0]}
         reho.sample_actors_epsilon(bounds=bounds, n_samples=1, ins_target=[0])
 
+        #remember to disable network_demand and Unit_demand['','EV_charger_district'] in AP
         # Run actor-based optimization
         reho.actor_decomposition_optimization()
 
         # Save results
-        reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El')
+        reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El_1')
