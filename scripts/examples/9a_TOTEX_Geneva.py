@@ -22,9 +22,9 @@ def remove_nan_QBuilding(buildings_data):
 
 if __name__ == '__main__':
     for i in range(0,3):
-        path = '/Users/ziqian/Desktop/MA/EnergyScope/'
+        path = '/home/wang2/REHO_students'
         case_study = i  #Center: 0; Villa:1 ; Rural:2
-        df_case_study = pd.read_csv(path + 'REHO/scripts/examples/data/case_study.csv')
+        df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
         neighborhood_type = df_case_study.loc[case_study]['case_study']
         # Set building parameters
         reader = QBuildingsReader()
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46, "ff_EV": 1.56}
         set_indexed = {"Distances": ["short"]}
 
-        units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"REHO/scripts/examples/data/units_adapted.csv")
+        units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
 
         reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
                              cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 6},

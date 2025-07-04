@@ -22,9 +22,9 @@ def remove_nan_QBuilding(buildings_data):
 
 if __name__ == '__main__':
     for i in [0,1,2]:
-        path = '/Users/ziqian/Desktop/MA/EnergyScope/'
+        path = '/home/wang2/'
         case_study = i  #Center: 0; Villa:1 ; Rural:2
-        df_case_study = pd.read_csv(path + 'REHO/scripts/examples/data/case_study.csv')
+        df_case_study = pd.read_csv(path + 'REHO_students/scripts/examples/data/case_study.csv')
         neighborhood_type = df_case_study.loc[case_study]['case_study']
         # Set building parameters
         reader = QBuildingsReader()
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46}
         set_indexed = {"Distances": ["short"]}
 
-        units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"REHO/scripts/examples/data/units_adapted.csv")
+        units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"REHO_students/scripts/examples/data/units_adapted.csv")
 
         reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
                              cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 3},
@@ -92,4 +92,8 @@ if __name__ == '__main__':
         reho.actor_decomposition_optimization()
 
         # Save results
+<<<<<<< Updated upstream
         reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El_1')
+=======
+        reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El')
+>>>>>>> Stashed changes

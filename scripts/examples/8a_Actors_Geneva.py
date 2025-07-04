@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     # Set method options
     method = {'actors_problem': True, "refurbishment": True, "parallel_computation": True,
-              "save_streams": False, "save_timeseries": False, "save_data_input": True}
+              "save_streams": False, "save_timeseries": False, "save_data_input": True,"print_logs": False}
 
     # Initialize available units and grids
     grids = infrastructure.initialize_grids({'Electricity': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 0.3},
