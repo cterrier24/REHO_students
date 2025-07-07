@@ -157,15 +157,17 @@ def get_self_consumption(unit_time_series, grid_time_series):
                 except KeyError:
                     continue
                 available_units = set(unit_df.index.get_level_values('Unit'))
-                name_battery = f'Battery_{h}'
-                name_PV = f'PV_{h}'
+                name_battery_10 = f'Battery_10_{h}'
+                name_battery_100 = f'Battery_10_{h}'
+                name_PV_20 = f'PV_20_{h}'
+                name_PV_100 = f'PV_100_{h}'
                 for t in grid_df.index:
                     try:
                         E_grid_demand = grid_df.loc[t, 'Grid_demand']
-                        E_PV = unit_df.loc[(name_PV, t), 'Units_supply']
-                        if name_battery in available_units:
-                            E_charging = unit_df.loc[(name_battery, t), 'Units_demand']
-                            E_discharging = unit_df.loc[(name_battery, t), 'Units_supply']
+                        E_PV = unit_df.loc[(name_PV_20, t), 'Units_supply'] + unit_df.loc[(name_PV_100, t), 'Units_supply']
+                        if name_battery_10 or name_battery_100 in available_units:
+                            E_charging = unit_df.loc[(name_battery_10, t), 'Units_demand'] + unit_df.loc[(name_battery_100, t), 'Units_demand']
+                            E_discharging = unit_df.loc[(name_battery_10, t), 'Units_supply'] + unit_df.loc[(name_battery_100, t), 'Units_supply']
                             sc = max(E_PV - E_charging + E_discharging - E_grid_demand, 0)
                         else:
                             sc = max(E_PV - E_grid_demand, 0)
