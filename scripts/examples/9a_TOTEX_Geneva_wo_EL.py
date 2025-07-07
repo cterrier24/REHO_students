@@ -92,8 +92,5 @@ if __name__ == '__main__':
         reho.actor_decomposition_optimization()
 
         # Save results
-<<<<<<< Updated upstream
-        reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El_1')
-=======
         reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El')
->>>>>>> Stashed changes
+

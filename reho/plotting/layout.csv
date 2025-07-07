@@ -40,8 +40,8 @@ solar_value,Solar value,Solar,Électricité solaire,#4d9ea6,canard_light
 solar_premium,Solar premium,SC Premium,Premium auto-consommation,#ffd980,yellow_light
 Curtailment,PV curtailment,CU,PV Écrêtement,#664700,yellow_dark
 ,,,,,
-HeatPump,Heat pump,HP,Pompe à chaleur,#FEA993,salmon
-HeatPump_Air,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon
+Battery_10,Battery 10,Bat,Batterie,#A57300,lightblue
+Battery_100,Battery 100,Bat,Batterie,#A57300,lightblue
 HeatPump_DHN,Heat pump DHN,HP DHN,"Pompe à chaleur, CAD",#FEA993,salmon
 HeatPump_Geothermal,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon
 HeatPump_Geothermal_district, District HP geothermal,District HP geo,PAC géothermie (district),#FEA993,salmon
@@ -99,7 +99,7 @@ Isolation_roof,Roof insulation,INS1,Isolation toiture,#a9d6bc,green_light
 Isolation_facade,Facade insulation,INS2,Isolation façade,#87c5a1,green_medium
 Isolation_full,Complete insulation,INS3,Isolation complète,#53ac7a,green_dark
 ,,,,,
-Mobility,Mobility,Mob,Mobilité,#32CD32,limegreen
+Mobility,Mobility,Mob,Mobilité,#90c17b,pinkLGBT
 ICE_district,Fossil fuel vehicles,ICE,Véhicule à combustion,#8B4513,saddlebrown
 Bike_district,Bikes,Bike,Vélos,#90EE90,lightgreen
 ElectricBike_district,Electric bikes,EBike,Vélos électriques,#00FF7F,springgreen
@@ -110,11 +110,13 @@ EV_charger_district,EV charging station,EVchrg,Stations de recharge,#008080,teal
 Reinforcement,Grid reinforcement,GridReinf,Renforcement,#5A626B,grey
 ,,,,,
 ,,,,,
-HeatPump_Air_10,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon
-HeatPump_Air_50,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon
-HeatPump_Air_400,Heat pump air,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Air_10,Heat pump 10,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Air_50,Heat pump 50,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Air_400,Heat pump 400,HP air,"Pompe à chaleur, air",#FEA993,salmon
 HeatPump_Geothermal_10,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon
 HeatPump_Geothermal_50,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon
 HeatPump_Geothermal_400,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#FEA993,salmon
-PV_100,PV panel,PV,Panneaux photovoltaïques,#ffd980,yellow_light
-PV_20,PV panel,PV,Panneaux photovoltaïques,#ffd980,yellow_light
+Battery_10,Battery 10,Bat,Batterie,#A57300,lightblue
+Battery_100,Battery 100,Bat,Batterie,#A57300,lightblue
+PV_20,PV panel 20,PV,Panneaux photovoltaïques,#ffd980,yellow_light
+PV_100,PV panel 100,PV,Panneaux photovoltaïques,#ffd980,yellow_light

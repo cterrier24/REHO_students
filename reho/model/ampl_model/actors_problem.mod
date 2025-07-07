@@ -50,6 +50,7 @@ var C_renters_to_ECM_mobility{h in House};
 var objective_functions{a in Actors};
 
 param renter_expense_max{h in House} default 1e10; 
+param renter_affordability default 1;
 var renter_expense{h in House};
 var C_op_renters_to_ECM{h in House} >= 0;
 var C_op_renters_to_owners{h in House} >= 0;
@@ -73,7 +74,7 @@ subject to Renter_noSub{h in House}:
 renter_subsidies[h] = 0;
 
 subject to Renter_epsilon{h in House}: #nu_renters
-renter_expense[h] - renter_subsidies[h] <= (39.5+23.05) * ERA[h];
+renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+23.05) * ERA[h];
 
 subject to obj_fct1:
 objective_functions["Renters"] = sum{h in House}(renter_expense[h]);
@@ -99,6 +100,9 @@ sum{h in House} (is_ins[h] * ERA[h]) >= ins_target * sum{h in House} ERA[h];
 
 var renovation{h in House};
 
+param invest_willingness default 1;
+param inv_opt default 1e10;
+
 subject to Insulation1{h in House}:
 Uh[h] - sum{f in FeasibleSolutions}(Uh_ins[f,h] * lambda[f,h])  >= 0.000009 - 10000 * (1 - is_ins[h]);
 subject to Insulation2{h in House}:
@@ -112,6 +116,9 @@ C_op_owners_to_ECM[h] = sum{l in ResourceBalances} Costs_grid_connection_House[l
 
 subject to Owner_profit_calc{h in House}:
 owner_profit[h] = C_op_renters_to_owners[h] + C_op_ECM_to_owners[h] - C_op_owners_to_ECM[h];# - Costs_House_inv[h];
+
+subject to Owner_invest_lim{h in House}:
+Costs_inv <= invest_willingness * inv_opt;
 
 subject to Owner_epsilon{h in House}: 
 owner_profit[h] + owner_subsidies[h] >= 0.5 * Costs_House_inv[h]; #owner_PIR_min * Costs_House_inv[h];
@@ -157,7 +164,7 @@ ECM_profit = sum{h in House} (C_op_renters_to_ECM[h] + C_renters_to_ECM_mobility
                   - C_op_ECM_with_extern - tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
 
 subject to ECM_epsilon:
-ECM_profit + ECM_subsidies >= i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
+ECM_profit + ECM_subsidies >= 0;#i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
 
 subject to obj_fct3:
 objective_functions["ECM"] = - ECM_profit;
@@ -175,13 +182,13 @@ DSO_reinforce = sum{l in ResourceBalances} (Cost_network_inv1[l]*Use_Network_cap
 
 subject to DSO1:
 C_op_DSO_with_extern = 0.65 * sum{p in PeriodStandard, t in Time[p]} Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t] 
-                     - 0.49 * sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_supply["Electricity",p,t];
+                     - 0.49 * sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t];
 
 subject to DSO_profit_calc:
 DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_with_extern - tau * DSO_reinforce;
 
 subject to DSO_epsilon:
-DSO_profit >= i_rate * tau * DSO_reinforce ;
+DSO_profit >= 0;# i_rate * tau * DSO_reinforce ;
 
 subject to obj_fct4:
 objective_functions["DSO"] = - DSO_profit;
