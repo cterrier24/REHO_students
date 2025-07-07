@@ -80,7 +80,7 @@ if __name__ == '__main__':
             units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
 
             reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
-                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 3},
+                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 6},
                                  solver="gurobiasl")
             reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
@@ -96,5 +96,5 @@ if __name__ == '__main__':
             reho.actor_decomposition_optimization()
 
             # Save results
-            reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_Actors_SCITAS')
+            reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS')
             #reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_Renter{renter_affordability}_Actors_SCITAS')

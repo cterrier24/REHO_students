@@ -54,6 +54,10 @@ param renter_affordability default 1;
 var renter_expense{h in House};
 var C_op_renters_to_ECM{h in House} >= 0;
 var C_op_renters_to_owners{h in House} >= 0;
+var Cost_supply_district_mobility;
+
+subject to Mobility_supply:
+Cost_supply_district_mobility = sum{f in FeasibleSolutions, h in House, p in PeriodStandard, t in Time[p]} (Cost_supply_district['Mobility',f,h,p,t]* Grid_supply['Mobility',f,h,p,t] * dp[p] * dt[p]);
 
 subject to Costs_Renter_Mobility{h in House}:
 C_renters_to_ECM_mobility[h] = c_EV * sum{dist in Distances}(DailyDist[dist] * ERA[h] / 46) ;
@@ -174,18 +178,21 @@ objective_functions["ECM"] = - ECM_profit;
 #--------------------------------------------------------------------------------------------------------------------#
 var DSO_profit;
 var DSO_reinforce;
-var C_op_DSO_with_extern;
+var C_op_DSO_to_extern;
+var C_op_extern_to_DSO;
 param DSO_profit_min default -1e-6;
 
 subject to DSO_expense: 
 DSO_reinforce = sum{l in ResourceBalances} (Cost_network_inv1[l]*Use_Network_capacity[l]+Cost_network_inv2[l] * (Network_capacity[l]-Network_ext[l] * (1- Use_Network_capacity[l])));
 
 subject to DSO1:
-C_op_DSO_with_extern = 0.65 * sum{p in PeriodStandard, t in Time[p]} Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t] 
-                     - 0.49 * sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t];
+C_op_DSO_to_extern = 0.65 * sum{p in PeriodStandard, t in Time[p]} Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t]; 
+
+subject to DSO2:
+C_op_extern_to_DSO= 0.49 * sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t];
 
 subject to DSO_profit_calc:
-DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_with_extern - tau * DSO_reinforce;
+DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_to_extern + C_op_extern_to_DSO - tau * DSO_reinforce;
 
 subject to DSO_epsilon:
 DSO_profit >= 0;# i_rate * tau * DSO_reinforce ;
