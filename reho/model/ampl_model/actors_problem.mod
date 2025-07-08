@@ -106,6 +106,7 @@ var renovation{h in House};
 
 param invest_willingness default 1;
 param inv_opt default 1e10;
+param owner_PIR default 0.5; 
 
 subject to Insulation1{h in House}:
 Uh[h] - sum{f in FeasibleSolutions}(Uh_ins[f,h] * lambda[f,h])  >= 0.000009 - 10000 * (1 - is_ins[h]);
@@ -125,7 +126,7 @@ subject to Owner_invest_lim{h in House}:
 Costs_inv <= invest_willingness * inv_opt;
 
 subject to Owner_epsilon{h in House}: 
-owner_profit[h] + owner_subsidies[h] >= 0.5 * Costs_House_inv[h]; #owner_PIR_min * Costs_House_inv[h];
+owner_profit[h] + owner_subsidies[h] >= owner_PIR * Costs_House_inv[h]; #owner_PIR_min * Costs_House_inv[h];
 
 subject to Owner_noSub{h in House}:
 owner_subsidies[h] = 0;
