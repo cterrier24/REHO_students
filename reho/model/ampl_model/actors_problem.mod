@@ -62,8 +62,8 @@ Cost_supply_district_mobility = sum{f in FeasibleSolutions, h in House, p in Per
 subject to Costs_Renter_Mobility{h in House}:
 C_renters_to_ECM_mobility[h] = c_EV * sum{dist in Distances}(DailyDist[dist] * ERA[h] / 46) ;
 
-subject to Costs_Renter_Mobility_limit{h in House}:
-C_renters_to_ECM_mobility[h] <= (21+23.05) * ERA[h];
+#subject to Costs_Renter_Mobility_limit{h in House}:
+#C_renters_to_ECM_mobility[h] <= (21+23.05) * ERA[h]; (713.31-130.6)/2.18/46*12=69.73
 
 subject to Costs_opex_renter_ECM{h in House}:
 C_op_renters_to_ECM[h] = sum{l in ResourceBalances, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_supply_district[l,f,h,p,t]* Grid_supply[l,f,h,p,t] * dp[p] * dt[p]);
@@ -78,7 +78,7 @@ subject to Renter_noSub{h in House}:
 renter_subsidies[h] = 0;
 
 subject to Renter_epsilon{h in House}: #nu_renters
-renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+23.05) * ERA[h];
+renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+69.7) * ERA[h];
 
 subject to obj_fct1:
 objective_functions["Renters"] = sum{h in House}(renter_expense[h]);
@@ -169,7 +169,7 @@ ECM_profit = sum{h in House} (C_op_renters_to_ECM[h] + C_renters_to_ECM_mobility
                   - C_op_ECM_with_extern - tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
 
 subject to ECM_epsilon:
-ECM_profit + ECM_subsidies >= 0;#i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
+ECM_profit + ECM_subsidies >= i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
 
 subject to obj_fct3:
 objective_functions["ECM"] = - ECM_profit;
@@ -196,7 +196,7 @@ subject to DSO_profit_calc:
 DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_to_extern + C_op_extern_to_DSO - tau * DSO_reinforce;
 
 subject to DSO_epsilon:
-DSO_profit >= 0;# i_rate * tau * DSO_reinforce ;
+DSO_profit >= i_rate * tau * DSO_reinforce ;
 
 subject to obj_fct4:
 objective_functions["DSO"] = - DSO_profit;
@@ -213,3 +213,4 @@ objective_functions["DSO"] = - DSO_profit;
 #--------------------------------------------------------------------------------------------------------------------#
 minimize TOTEX_actor:
 sum {a in ActorObjective} objective_functions[a] + penalty_ratio * (Costs_inv + Costs_op + sum{h in House}(renter_subsidies[h] + owner_subsidies[h]) + ECM_subsidies);
+
