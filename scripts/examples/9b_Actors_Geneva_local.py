@@ -24,8 +24,8 @@ def remove_nan_QBuilding(buildings_data):
 if __name__ == '__main__':
     for i in range(0,3):
         for owner_PIR in [0.5]:
-            path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
-            #path = '/home/wang2/REHO_students'
+            #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
+            path = '/home/wang2/REHO_students'
             case_study = i  #Center: 0; Villa:1 ; Rural:2
             df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
             neighborhood_type = df_case_study.loc[case_study]['case_study']

@@ -21,10 +21,10 @@ def remove_nan_QBuilding(buildings_data):
     return buildings_data
 
 if __name__ == '__main__':
-    for i in range(0,3):
-        for living_space in [0.8,0.9,1.1,1.2]:
-            path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
-            #path = '/home/wang2/REHO_students'
+    for i in [2,1]:
+        for owner_PIR in [0.3,0.4,0.6,0.7]:
+            #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
+            path = '/home/wang2/REHO_students'
             case_study = i  #Center: 0; Villa:1 ; Rural:2
             df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
             neighborhood_type = df_case_study.loc[case_study]['case_study']
@@ -73,8 +73,7 @@ if __name__ == '__main__':
 
             era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
 
-            parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / (46 * living_space), "ff_EV": 1.56,
-                          'owner_PIR': owner_PIR}
+            parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / (46), "ff_EV": 1.56, "owner_PIR": owner_PIR}
             set_indexed = {"Distances": ["short"]}
 
             units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
@@ -97,4 +96,4 @@ if __name__ == '__main__':
 
             # Save results
             #reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS')
-            reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_LivingSpace{living_space}_Actors_LOCAL')
+            reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_Owner{owner_PIR}_Actors_SCITAS')
