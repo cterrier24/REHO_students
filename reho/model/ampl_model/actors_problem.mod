@@ -78,7 +78,9 @@ subject to Renter_noSub{h in House}:
 renter_subsidies[h] = 0;
 
 subject to Renter_epsilon{h in House}: #nu_renters
-renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+69.7) * ERA[h];
+#renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+69.7) * ERA[h];
+renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+48.8) * ERA[h];
+
 
 subject to obj_fct1:
 objective_functions["Renters"] = sum{h in House}(renter_expense[h]);
