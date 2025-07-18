@@ -93,4 +93,4 @@ if __name__ == '__main__':
 
             # Save results
             #reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS')
-            reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_Actors_{time.strftime("%m%d%H%M")}')
+            reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS_{time.strftime("%m%d%H%M")}')
