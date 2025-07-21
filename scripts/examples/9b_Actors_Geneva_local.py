@@ -40,7 +40,7 @@ if __name__ == '__main__':
             scenario = dict()
             scenario['Objective'] = 'TOTEX'
             scenario['EMOO'] = {}
-            scenario['specific'] =['unidirectional_service']
+            scenario['specific'] =['unidirectional_service','Renter_noSub']
             scenario["name"] = "actors"
 
             # Choose energy system structure options
@@ -56,7 +56,7 @@ if __name__ == '__main__':
             grids = infrastructure.initialize_grids({'Electricity': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 0.3},
                                                      'NaturalGas': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
                                                      'Gasoline': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
-                                                     'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 1}})
+                                                     'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 1.1}})
 
             # available capacities of networks [Electricity]
             grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, 400, df_case_study.loc[case_study]['P_peak'] * 3,630, 1000, 2000, 4000])
@@ -76,11 +76,11 @@ if __name__ == '__main__':
             units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
 
             reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
-                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 6},
+                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 5},
                                  solver="gurobiasl")
             reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
-            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.3, 1, 1]},
+            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1, 1]},
                                        index=['MD', 'PT', 'cars', 'EV_district'])
 
             reho.modal_split = modal_split
