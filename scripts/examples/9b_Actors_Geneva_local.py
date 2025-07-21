@@ -56,7 +56,7 @@ if __name__ == '__main__':
             grids = infrastructure.initialize_grids({'Electricity': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 0.3},
                                                      'NaturalGas': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
                                                      'Gasoline': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
-                                                     'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 3}})
+                                                     'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 1}})
 
             # available capacities of networks [Electricity]
             grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, 400, df_case_study.loc[case_study]['P_peak'] * 3,630, 1000, 2000, 4000])
@@ -80,7 +80,7 @@ if __name__ == '__main__':
                                  solver="gurobiasl")
             reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
-            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.0, 1.0, 1.0]},
+            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.3, 1, 1]},
                                        index=['MD', 'PT', 'cars', 'EV_district'])
 
             reho.modal_split = modal_split
