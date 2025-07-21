@@ -80,7 +80,7 @@ if __name__ == '__main__':
                                  solver="gurobiasl")
             reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
-            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1.0, 1.0]},
+            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.0, 1.0, 1.0]},
                                        index=['MD', 'PT', 'cars', 'EV_district'])
 
             reho.modal_split = modal_split

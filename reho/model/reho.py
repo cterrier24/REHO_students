@@ -450,7 +450,7 @@ class REHO(MasterProblem):
                 ['C_op_renters_to_ECM', 'C_op_renters_to_owners', 'C_op_owners_to_ECM', 'C_op_ECM_to_owners', 'C_op_ECM_to_DSO','C_op_DSO_to_ECM',
                  'owner_inv', 'owner_profit', 'renter_expense','renter_subsidies','owner_subsidies','is_ins',
                  'ECM_profit','ECM_subsidies', 'DSO_profit','c_EV', 'C_renters_to_ECM_mobility','C_op_ECM_with_extern','C_op_DSO_to_extern','C_op_extern_to_DSO',
-                 'Cost_supply_district_mobility']]
+                 'Cost_supply_district_mobility', 'DSO_reinforce']]
             df_Performance = pd.concat([df_Performance, df_actor], axis=1)
             df_Results["df_Actors_tariff"] = self.results_MP[Scn_ID][Pareto_ID][self.iter]["df_Actors_tariff"]
             df_Results["df_Actors"] = self.results_MP[Scn_ID][Pareto_ID][self.iter]["df_Actors"]
