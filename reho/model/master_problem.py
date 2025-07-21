@@ -128,7 +128,8 @@ class MasterProblem:
                                                 "transport_Units", "DailyDist", "Mode_Speed", "Cost_demand_ext", "EV_supply_ext", "share_activity", "Cost_supply_ext",
                                                 'EV_y', 'EV_plugged_out', 'n_vehicles', 'EV_capacity',
                                                 "max_share", "min_share", "max_share_modes", "min_share_modes", "n_ICEperhab",
-                                                "Cost_network_inv1", "Cost_network_inv2", "GWP_network_1", "GWP_network_2", "Units_Ext_district", "Network_lifetime", "ff_EV"],
+                                                "Cost_network_inv1", "Cost_network_inv2", "GWP_network_1", "GWP_network_2", "Units_Ext_district", "Network_lifetime", "ff_EV",
+                                                "i_rate"],
                          "list_constraints_MP": [],
                          "list_set_indexed_MP": ["Districts", "Distances"],
                          }
@@ -1312,6 +1313,8 @@ class MasterProblem:
                             parameters_SP[key] = profile_building_x[ID]
                         except:
                             parameters_SP[key] = self.parameters[key]  # one parameter for all buildings
+            elif key == 'i_rate':
+                parameters_SP[key] = self.parameters[key]
 
         for key in self.set_indexed:
             if key not in self.lists_MP["list_set_indexed_MP"]:
