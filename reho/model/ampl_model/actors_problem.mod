@@ -80,8 +80,8 @@ renter_subsidies[h] = 0;
 subject to Renter_epsilon{h in House}: #nu_renters
 #renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+69.7) * ERA[h];
 #renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+48.8) * ERA[h];
-renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+27.92) * ERA[h];
-
+#renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+27.92) * ERA[h];
+renter_expense[h] - renter_subsidies[h] <= renter_affordability * 95.82 * ERA[h];
 
 subject to obj_fct1:
 objective_functions["Renters"] = sum{h in House}(renter_expense[h]);
@@ -187,7 +187,7 @@ var C_op_extern_to_DSO;
 param DSO_profit_min default -1e-6;
 
 subject to DSO_expense: 
-DSO_reinforce = sum{l in ResourceBalances} (Cost_network_inv1[l]*Use_Network_capacity[l]+Cost_network_inv2[l] * (Network_capacity[l]-Network_ext[l] * (1- Use_Network_capacity[l])));
+DSO_reinforce = tau * sum{l in ResourceBalances} (Cost_network_inv1[l]*Use_Network_capacity[l]+Cost_network_inv2[l] * (Network_capacity[l]-Network_ext[l] * (1- Use_Network_capacity[l])));
 
 subject to DSO1:
 C_op_DSO_to_extern = 0.65 * sum{p in PeriodStandard, t in Time[p]} Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t]; 
@@ -196,10 +196,10 @@ subject to DSO2:
 C_op_extern_to_DSO= 0.49 * sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t];
 
 subject to DSO_profit_calc:
-DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_to_extern + C_op_extern_to_DSO - tau * DSO_reinforce;
+DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_to_extern + C_op_extern_to_DSO - DSO_reinforce;
 
 subject to DSO_epsilon:
-DSO_profit >= i_rate * tau * DSO_reinforce ;
+DSO_profit >= i_rate * DSO_reinforce ;
 
 subject to obj_fct4:
 objective_functions["DSO"] = - DSO_profit;
