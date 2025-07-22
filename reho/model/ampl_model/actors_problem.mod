@@ -39,7 +39,7 @@ param PV_self_consummed{f in FeasibleSolutions, h in House, p in Period, t in Ti
 param Self_consumption{f in FeasibleSolutions, h in House, p in Period, t in Time[p]} default 0 ;
 
 #EV-Service Price (CHF/km/person)
-var c_EV; 
+var c_EV >= 0; 
 var C_renters_to_ECM_mobility{h in House};
 
 #subject to Invest_limitation:
@@ -50,14 +50,16 @@ var C_renters_to_ECM_mobility{h in House};
 var objective_functions{a in Actors};
 
 param renter_expense_max{h in House} default 1e10; 
+param renter_ref{h in House} default 59.75;
 param renter_affordability default 1;
 var renter_expense{h in House};
 var C_op_renters_to_ECM{h in House} >= 0;
 var C_op_renters_to_owners{h in House} >= 0;
-var Cost_supply_district_mobility;
+var Cost_supply_district_mobility{h in House};
 
-subject to Mobility_supply:
-Cost_supply_district_mobility = sum{f in FeasibleSolutions, h in House, p in PeriodStandard, t in Time[p]} (Cost_supply_district['Mobility',f,h,p,t]* Grid_supply['Mobility',f,h,p,t] * dp[p] * dt[p]);
+
+subject to Mobility_supply{h in House}:
+Cost_supply_district_mobility[h] = sum{f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_supply_district['Mobility',f,h,p,t]* Grid_supply['Mobility',f,h,p,t] * dp[p] * dt[p]);
 
 subject to Costs_Renter_Mobility{h in House}:
 C_renters_to_ECM_mobility[h] = c_EV * sum{dist in Distances}(DailyDist[dist] * ERA[h] / 46) ;
@@ -66,13 +68,13 @@ C_renters_to_ECM_mobility[h] = c_EV * sum{dist in Distances}(DailyDist[dist] * E
 #C_renters_to_ECM_mobility[h] <= (21+23.05) * ERA[h]; (713.31-130.6)/2.18/46*12=69.73
 
 subject to Costs_opex_renter_ECM{h in House}:
-C_op_renters_to_ECM[h] = sum{l in ResourceBalances, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_supply_district[l,f,h,p,t]* Grid_supply[l,f,h,p,t] * dp[p] * dt[p]);
+C_op_renters_to_ECM[h] = sum{l in ResourceBalances diff {"Mobility"}, f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_supply_district[l,f,h,p,t]* Grid_supply[l,f,h,p,t] * dp[p] * dt[p]);
 
 subject to Costs_opex_renter_owner{h in House}:
 C_op_renters_to_owners[h] = sum{f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_self_consumption[f,h,p,t] * Self_consumption[f,h,p,t] * dp[p] * dt[p]);
 
 subject to Renter_expense_calc{h in House}:
-renter_expense[h] = C_op_renters_to_ECM[h] + C_op_renters_to_owners[h] + C_renters_to_ECM_mobility[h];
+renter_expense[h] = C_op_renters_to_ECM[h] + C_op_renters_to_owners[h] + C_renters_to_ECM_mobility[h] + Cost_supply_district_mobility[h];
 
 subject to Renter_noSub{h in House}:
 renter_subsidies[h] = 0;
@@ -82,7 +84,9 @@ subject to Renter_epsilon{h in House}: #nu_renters
 #renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+48.8) * ERA[h];
 #renter_expense[h] - renter_subsidies[h] <= renter_affordability * (39.5+27.92) * ERA[h];
 #renter_expense[h] - renter_subsidies[h] <= renter_affordability * 95.82 * ERA[h];
-renter_expense[h] - renter_subsidies[h] <= renter_affordability * 59.75 * ERA[h];
+#renter_expense[h] - renter_subsidies[h] <= renter_affordability * 59.75 * ERA[h];
+#renter_expense[h] - renter_subsidies[h] <= 1e10;
+renter_expense[h] - renter_subsidies[h] <= renter_affordability * renter_ref[h];
 
 subject to obj_fct1:
 objective_functions["Renters"] = sum{h in House}(renter_expense[h]);
@@ -153,12 +157,6 @@ C_op_ECM_to_owners[h] = sum{l in ResourceBalances, f in FeasibleSolutions, p in 
 var test_ECM_DSO{p in Period,t in Time[p]};
 var test_DSO_ECM{p in Period,t in Time[p]};
 
-subject to cst_ECM_DSO{p in Period,t in Time[p]}:
-test_ECM_DSO[p,t] = Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t];
-subject to cst_DSO_ECM{p in Period,t in Time[p]}:
-test_DSO_ECM[p,t] = Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t];
-
-
 subject to ECM2:
 C_op_ECM_to_DSO = sum{p in PeriodStandard, t in Time[p]} Cost_supply_network["Electricity",p,t] * Network_supply["Electricity",p,t]; 
 
@@ -166,7 +164,7 @@ subject to ECM3:
 C_op_DSO_to_ECM = sum{p in PeriodStandard, t in Time[p]} Cost_demand_network["Electricity",p,t] * Network_demand["Electricity",p,t];
 
 subject to ECM4:
-C_op_ECM_with_extern = sum{l in ResourceBalances diff {"Electricity"}, p in PeriodStandard, t in Time[p]} Cost_supply_network[l,p,t] * Network_supply[l,p,t];
+C_op_ECM_with_extern = sum{l in ResourceBalances diff {"Electricity", "Mobility"}, p in PeriodStandard, t in Time[p]} Cost_supply_network[l,p,t] * Network_supply[l,p,t];
  
 subject to ECM_profit_calc:
 ECM_profit = sum{h in House} (C_op_renters_to_ECM[h] + C_renters_to_ECM_mobility[h] + C_op_owners_to_ECM[h] - C_op_ECM_to_owners[h]) - C_op_ECM_to_DSO + C_op_DSO_to_ECM 
@@ -174,6 +172,7 @@ ECM_profit = sum{h in House} (C_op_renters_to_ECM[h] + C_renters_to_ECM_mobility
 
 subject to ECM_epsilon:
 ECM_profit + ECM_subsidies >= i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
+#ECM_profit + ECM_subsidies >= -1e10;
 
 subject to obj_fct3:
 objective_functions["ECM"] = - ECM_profit;
@@ -201,6 +200,7 @@ DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_to_extern + C_op_exte
 
 subject to DSO_epsilon:
 DSO_profit >= i_rate * DSO_reinforce ;
+#DSO_profit >= -1e10;
 
 subject to obj_fct4:
 objective_functions["DSO"] = - DSO_profit;

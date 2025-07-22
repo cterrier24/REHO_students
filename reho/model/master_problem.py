@@ -129,7 +129,7 @@ class MasterProblem:
                                                 'EV_y', 'EV_plugged_out', 'n_vehicles', 'EV_capacity',
                                                 "max_share", "min_share", "max_share_modes", "min_share_modes", "n_ICEperhab",
                                                 "Cost_network_inv1", "Cost_network_inv2", "GWP_network_1", "GWP_network_2", "Units_Ext_district", "Network_lifetime", "ff_EV",
-                                                "i_rate"],
+                                                "i_rate", "renter_ref"],
                          "list_constraints_MP": [],
                          "list_set_indexed_MP": ["Districts", "Distances"],
                          }

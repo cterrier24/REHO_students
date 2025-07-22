@@ -3,6 +3,7 @@ from pickle import FALSE
 from reho.model.actors_problem import *
 
 import math
+import time
 
 def remove_nan_QBuilding(buildings_data):
     for bui in buildings_data["buildings_data"]:
@@ -20,23 +21,76 @@ def remove_nan_QBuilding(buildings_data):
             buildings_data["buildings_data"][bui]["T_comfort_min_0"] = 20
     return buildings_data
 
+def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
+    """
+    Compute the renter_ref series for a given neighborhood scenario.
+
+    Parameters:
+    - base_path: str, the root directory containing the 'scripts/examples/results' subfolder.
+    - neighborhood_type: str, one of the scenario identifiers (e.g., 'Center', 'Villa', 'Rural').
+
+    Returns:
+    - pd.Series named 'renter_ref', indexed by building/hub labels, with computed cost allocations.
+
+    Raises:
+    - FileNotFoundError if the pickle file does not exist.
+    """
+    # Build the full pickle file path
+    file_path = (
+        f"{base_path}/scripts/examples/results/9a_{neighborhood_type}_"
+        "TOTEX_wo_El_wo_Res.pickle"
+    )
+    try:
+        data = pd.read_pickle(file_path)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Could not find file: {file_path}")
+
+    ERA = data['actors'][0]['df_Buildings']['ERA']
+    df_econ = data['actors'][0]['df_Economics']
+    reinf = (
+        data['actors'][0]['df_Grid']
+            .xs('Network')
+            .xs('Electricity')['ReinforcementCost']
+    )
+
+    renter_series = pd.Series(index=ERA.index, name="renter_ref")
+    total_era = ERA.sum()
+
+    for hub in ERA.index:
+        net_costs = (
+            df_econ
+            .xs('Network', level='Hub', axis=0)
+            .xs('costs')
+        )
+        local_costs = (
+            df_econ
+            .xs(hub, level='Hub', axis=0)
+            .xs('costs')
+        )
+        weight = ERA[hub] / total_era
+        renter_series[hub] = (
+            net_costs['investment']['ICE_district'] * weight
+            + local_costs['investment'].get('NG_Boiler', 0)
+            + local_costs['operation'].get('costs_Electricity', 0)
+            + net_costs['operation']['costs_Gasoline'] * weight
+            + local_costs['operation'].get('costs_NaturalGas', 0)
+            + reinf * weight
+        )
+
+    return renter_series
+
 if __name__ == '__main__':
-    for i in [2,1]:
-        for owner_PIR in [0.3,0.4,0.6,0.7]:
+    for i in range(1,3):
+        for owner_PIR in [0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7]:
             #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
             path = '/home/wang2/REHO_students'
             case_study = i  #Center: 0; Villa:1 ; Rural:2
             df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
             neighborhood_type = df_case_study.loc[case_study]['case_study']
 
-            #opt_solution = pd.read_pickle(path + f'/results/9a_{neighborhood_type}_Actors_SCITAS.pickle')
-            #inv_opt = opt_solution['actors'][0]['df_Performance']['owner_inv']['Network']
             # Set building parameters
-            reader = QBuildingsReader()
-            reader.establish_connection('Suisse')
-            qbuildings_data = reader.read_db(district_boundary='neighborhoods', district_id= int(df_case_study.loc[case_study]['id_neighborhood']))
-            qbuildings_data = remove_nan_QBuilding(qbuildings_data)
-
+            qbuildings_data = pd.read_pickle(path + f'/scripts/examples/data/results/QBuildings_{neighborhood_type}.pickle')
+            print(f"✅ QBuilding data {neighborhood_type} imported successfully.")
             # Select clustering options for weather data
             cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
 
@@ -44,7 +98,7 @@ if __name__ == '__main__':
             scenario = dict()
             scenario['Objective'] = 'TOTEX'
             scenario['EMOO'] = {}
-            scenario['specific'] =['unidirectional_service']
+            scenario['specific'] =['unidirectional_service','Renter_noSub']
             scenario["name"] = "actors"
 
             # Choose energy system structure options
@@ -73,17 +127,18 @@ if __name__ == '__main__':
 
             era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
 
-            parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / (46), "ff_EV": 1.56, "owner_PIR": owner_PIR}
+            parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46, "ff_EV": 1.56,
+                          'owner_PIR': owner_PIR, 'renter_ref': get_renter_param(path, neighborhood_type)}
             set_indexed = {"Distances": ["short"]}
 
             units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
 
             reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
-                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 6},
+                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 5},
                                  solver="gurobiasl")
             reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
-            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1.0, 1.0]},
+            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1, 1]},
                                        index=['MD', 'PT', 'cars', 'EV_district'])
 
             reho.modal_split = modal_split
@@ -96,4 +151,4 @@ if __name__ == '__main__':
 
             # Save results
             #reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS')
-            reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_Owner{owner_PIR}_Actors_SCITAS')
+            reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Owner{owner_PIR}_Actors_SCITAS_{time.strftime("%m%d%H%M")}')

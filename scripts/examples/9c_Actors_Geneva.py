@@ -20,6 +20,64 @@ def remove_nan_QBuilding(buildings_data):
         if math.isnan(buildings_data["buildings_data"][bui]["T_comfort_min_0"]):
             buildings_data["buildings_data"][bui]["T_comfort_min_0"] = 20
     return buildings_data
+def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
+    """
+    Compute the renter_ref series for a given neighborhood scenario.
+
+    Parameters:
+    - base_path: str, the root directory containing the 'scripts/examples/results' subfolder.
+    - neighborhood_type: str, one of the scenario identifiers (e.g., 'Center', 'Villa', 'Rural').
+
+    Returns:
+    - pd.Series named 'renter_ref', indexed by building/hub labels, with computed cost allocations.
+
+    Raises:
+    - FileNotFoundError if the pickle file does not exist.
+    """
+    # Build the full pickle file path
+    file_path = (
+        f"{base_path}/scripts/examples/results/9a_{neighborhood_type}_"
+        "TOTEX_wo_El_wo_Res.pickle"
+    )
+    try:
+        data = pd.read_pickle(file_path)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Could not find file: {file_path}")
+
+    ERA = data['actors'][0]['df_Buildings']['ERA']
+    df_econ = data['actors'][0]['df_Economics']
+    reinf = (
+        data['actors'][0]['df_Grid']
+            .xs('Network')
+            .xs('Electricity')['ReinforcementCost']
+    )
+
+    renter_series = pd.Series(index=ERA.index, name="renter_ref")
+    total_era = ERA.sum()
+
+    for hub in ERA.index:
+        net_costs = (
+            df_econ
+            .xs('Network', level='Hub', axis=0)
+            .xs('costs')
+        )
+        local_costs = (
+            df_econ
+            .xs(hub, level='Hub', axis=0)
+            .xs('costs')
+        )
+        weight = ERA[hub] / total_era
+        renter_series[hub] = (
+            net_costs['investment']['ICE_district'] * weight
+            + local_costs['investment'].get('NG_Boiler', 0)
+            + local_costs['operation'].get('costs_Electricity', 0)
+            + net_costs['operation']['costs_Gasoline'] * weight
+            + local_costs['operation'].get('costs_NaturalGas', 0)
+            + reinf * weight
+        )
+
+    return renter_series
+
 
 if __name__ == '__main__':
     for i in range(0,3):
@@ -31,7 +89,7 @@ if __name__ == '__main__':
             neighborhood_type = df_case_study.loc[case_study]['case_study']
 
             # Set building parameters
-            qbuildings_data = pd.read_pickle(path + f'/results/QBuildings_{neighborhood_type}.pickle')
+            qbuildings_data = pd.read_pickle(path + f'/scripts/examples/data/results/QBuildings_{neighborhood_type}.pickle')
             print(f"✅ QBuilding data {neighborhood_type} imported successfully.")
             # Select clustering options for weather data
             cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
@@ -56,7 +114,7 @@ if __name__ == '__main__':
             grids = infrastructure.initialize_grids({'Electricity': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 0.3},
                                                      'NaturalGas': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
                                                      'Gasoline': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
-                                                     'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 1.1}})
+                                                     'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 3}})
 
             # available capacities of networks [Electricity]
             grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, 400, df_case_study.loc[case_study]['P_peak'] * 3,630, 1000, 2000, 4000])
@@ -70,7 +128,7 @@ if __name__ == '__main__':
             era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
 
             parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46, "ff_EV": 1.56,
-                          'owner_PIR': owner_PIR}
+                          'owner_PIR': owner_PIR, 'renter_ref': get_renter_param(path, neighborhood_type)}
             set_indexed = {"Distances": ["short"]}
 
             units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
@@ -93,4 +151,4 @@ if __name__ == '__main__':
 
             # Save results
             #reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS')
-            reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS_{time.strftime("%m%d%H%M")}')
+            reho.save_results(format=["pickle"], filename=f'9c_{neighborhood_type}_Actors_SCITAS_{time.strftime("%m%d%H%M")}')

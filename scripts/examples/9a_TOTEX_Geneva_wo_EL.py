@@ -22,16 +22,15 @@ def remove_nan_QBuilding(buildings_data):
 
 if __name__ == '__main__':
     for i in [0,1,2]:
-        path = '/home/wang2/'
-        case_study = i  #Center: 0; Villa:1 ; Rural:2
-        df_case_study = pd.read_csv(path + 'REHO_students/scripts/examples/data/case_study.csv')
+        path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
+        # path = '/home/wang2/REHO_students'
+        case_study = i  # Center: 0; Villa:1 ; Rural:2
+        df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
         neighborhood_type = df_case_study.loc[case_study]['case_study']
-        # Set building parameters
-        reader = QBuildingsReader()
-        reader.establish_connection('Suisse')
-        qbuildings_data = reader.read_db(district_boundary='neighborhoods', district_id= int(df_case_study.loc[case_study]['id_neighborhood']))
-        qbuildings_data = remove_nan_QBuilding(qbuildings_data)
 
+        # Set building parameters
+        qbuildings_data = pd.read_pickle(path + f'/scripts/examples/results/data/QBuildings_{neighborhood_type}.pickle')
+        print(f"✅ QBuilding data {neighborhood_type} imported successfully.")
         # Select clustering options for weather data
         cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
 
@@ -39,11 +38,12 @@ if __name__ == '__main__':
         scenario = dict()
         scenario['Objective'] = 'TOTEX'
         scenario['EMOO'] = {}
-        scenario['specific'] =['unidirectional_service']
+        scenario['specific'] = ['unidirectional_service','unidirectional_service2']
         scenario["name"] = "actors"
 
         # Choose energy system structure options
-        scenario['exclude_units'] = ['Bike_district','EV_district', 'ElectricBike_district','HeatPump', 'Battery','PV', 'EV_Charger_district', 'ThermalSolar']
+        scenario['exclude_units'] = ['Bike_district','HeatPump', 'Battery','PV',
+                                     'ElectricalHeater_DHW', 'ElectricalHeater_SH','ThermalSolar']
         scenario['enforce_units'] = []
 
         # Set method options
@@ -58,12 +58,12 @@ if __name__ == '__main__':
                                                  'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 3}})
 
         # available capacities of networks [Electricity]
-        grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, df_case_study.loc[case_study]['P_peak'] * 3, 630, 1000, 2000, 4000])
+        grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, 400, 630, 1000, 2000, 4000])
         grids["Mobility"]["ReinforcementOfNetwork"] = np.array([2000])
         grids["Gasoline"]["ReinforcementOfNetwork"] = np.array([2000])
 
         # existing capacities of networks
-        Network_ext = pd.DataFrame([df_case_study.loc[case_study]['P_peak'] * 3, 2000, 2000, 2000], index=["Electricity", "NaturalGas", "Gasoline", "Mobility"],
+        Network_ext = pd.DataFrame([ df_case_study.loc[case_study]['P_peak'] * 3, 2000, 2000, 2000], index=["Electricity", "NaturalGas", "Gasoline", "Mobility"],
                                    columns=["Network_ext"])
 
         era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
@@ -71,15 +71,15 @@ if __name__ == '__main__':
         parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46}
         set_indexed = {"Distances": ["short"]}
 
-        units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"REHO_students/scripts/examples/data/units_adapted.csv")
+        units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
 
         reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
-                             cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 3},
+                             cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 6},
                              solver="gurobiasl")
         reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
-        modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1.0, 1.0, 0.0]},
-                                   index=['MD', 'PT', 'cars', 'ICE_district', 'EV_district'])
+        modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1, 1, 0.0]},
+                                   index=['MD', 'PT', 'cars', 'ICE_district','EV_district'])
 
         reho.modal_split = modal_split
         # Set value / sampling range for actors epsilon
@@ -87,10 +87,8 @@ if __name__ == '__main__':
         bounds = {"Owners": [0.0, 0.0], "ECM": [0.0, 0]}
         reho.sample_actors_epsilon(bounds=bounds, n_samples=1, ins_target=[0])
 
-        #remember to disable network_demand and Unit_demand['','EV_charger_district'] in AP
         # Run actor-based optimization
         reho.actor_decomposition_optimization()
 
         # Save results
-        reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El')
-
+        reho.save_results(format=["pickle"], filename=f'9a_{neighborhood_type}_TOTEX_wo_El_wo_Res')
