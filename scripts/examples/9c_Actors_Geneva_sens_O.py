@@ -80,7 +80,7 @@ def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
     return renter_series
 
 if __name__ == '__main__':
-    for i in range(1,3):
+    for i in range(0,3):
         for owner_PIR in [0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7]:
             #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
             path = '/home/wang2/REHO_students'
@@ -89,7 +89,7 @@ if __name__ == '__main__':
             neighborhood_type = df_case_study.loc[case_study]['case_study']
 
             # Set building parameters
-            qbuildings_data = pd.read_pickle(path + f'/scripts/examples/data/results/QBuildings_{neighborhood_type}.pickle')
+            qbuildings_data = pd.read_pickle(path + f'/scripts/examples/results/data/QBuildings_{neighborhood_type}.pickle')
             print(f"✅ QBuilding data {neighborhood_type} imported successfully.")
             # Select clustering options for weather data
             cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
