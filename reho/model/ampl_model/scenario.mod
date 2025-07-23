@@ -53,6 +53,7 @@ param ECM_subsidies default 0;
 param Costs_Unit_inv_district default 0;
 param Costs_rep_district default 0;
 param C_renters_mobility{h in House} default 0;
+param Cost_supply_district_mobility{h in House} default 0;
 param DSO_reinforce default 0;
 
 var cost_actors;
@@ -77,6 +78,7 @@ objective_renters[h] = -sum{l in ResourceBalances, p in Period, t in Time[p]} (C
                                                      sum{ u in UnitsOfType['Battery'] inter UnitsOfHouse[h]}Units_supply['Electricity',u,p,t]) 
                                                         - Grid_demand['Electricity',h,p,t]) * Cost_self_consumption[h,p,t] * dp[p]*dt[p])
                     - C_renters_mobility[h]
+                    - Cost_supply_district_mobility[h]
                     + renter_subsidies[h];
 
 subject to obj_owners{h in House}:
@@ -94,7 +96,7 @@ objective_ECM = sum{h in House, l in ResourceBalances, p in Period, t in Time[p]
             + sum{l in ResourceBalances, h in House} Costs_grid_connection_House[l,h]
             - sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_cst["Electricity"] * Network_supply["Electricity",p,t] + Cost_demand_cst["Electricity"] * Network_demand["Electricity",p,t]) *dp[p]*dt[p]) 
             - sum{h in House, p in PeriodStandard, t in Time[p]}(0.02 * Grid_demand["Electricity",h,p,t] * dp[p] * dt[p])
-            - sum{l in ResourceBalances,p in PeriodStandard,t in Time[p]}( (Cost_supply_cst[l]*Network_supply[l,p,t] - Cost_demand_cst[l]*Network_demand[l,p,t])*dp[p]*dt[p])
+            - sum{l in ResourceBalances diff {'Mobility', 'Electricity'},p in PeriodStandard,t in Time[p]}( (Cost_supply_cst[l]*Network_supply[l,p,t] - Cost_demand_cst[l]*Network_demand[l,p,t])*dp[p]*dt[p])
             - Costs_Unit_inv_district
             - Costs_rep_district;
 
@@ -104,7 +106,7 @@ objective_DSO = sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_cst["
             - DSO_reinforce;
 
 subject to actors_costs_SP:
-cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) + sum{h in House} (nu_Owners[h] * objective_owners[h]);# - nu_ECM * objective_ECM - nu_DSO * objective_DSO;
+cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) + sum{h in House} (nu_Owners[h] * objective_owners[h]) + nu_ECM * objective_ECM; # - nu_DSO * objective_DSO;
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Decomposition

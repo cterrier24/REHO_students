@@ -59,10 +59,10 @@ var Cost_supply_district_mobility{h in House};
 
 
 subject to Mobility_supply{h in House}:
-Cost_supply_district_mobility[h] = sum{f in FeasibleSolutions, p in PeriodStandard, t in Time[p]} (Cost_supply_district['Mobility',f,h,p,t]* Grid_supply['Mobility',f,h,p,t] * dp[p] * dt[p]);
+Cost_supply_district_mobility[h] = sum{p in PeriodStandard, t in Time[p]} (Cost_supply_network["Mobility",p,t] * Network_supply["Mobility",p,t]) * (ERA[h] / sum{k in House} ERA[k]); 
 
 subject to Costs_Renter_Mobility{h in House}:
-C_renters_to_ECM_mobility[h] = c_EV * sum{dist in Distances}(DailyDist[dist] * ERA[h] / 46) ;
+C_renters_to_ECM_mobility[h] = c_EV * sum{dist in Distances}(DailyDist[dist] * ERA[h] / 46);
 
 #subject to Costs_Renter_Mobility_limit{h in House}:
 #C_renters_to_ECM_mobility[h] <= (21+23.05) * ERA[h]; (713.31-130.6)/2.18/46*12=69.73
@@ -128,13 +128,14 @@ subject to Owner_grid_connection{h in House}:
 C_op_owners_to_ECM[h] = sum{l in ResourceBalances} Costs_grid_connection_House[l,h];
 
 subject to Owner_profit_calc{h in House}:
-owner_profit[h] = C_op_renters_to_owners[h] + C_op_ECM_to_owners[h] - C_op_owners_to_ECM[h];# - Costs_House_inv[h];
+owner_profit[h] = C_op_renters_to_owners[h] + C_op_ECM_to_owners[h] - C_op_owners_to_ECM[h]; # - Costs_House_inv[h];
 
 subject to Owner_invest_lim{h in House}:
 Costs_inv <= invest_willingness * inv_opt;
 
 subject to Owner_epsilon{h in House}: 
-owner_profit[h] + owner_subsidies[h] >= owner_PIR * Costs_House_inv[h]; #owner_PIR_min * Costs_House_inv[h];
+#owner_profit[h] + owner_subsidies[h] >= owner_PIR * Costs_House_inv[h];
+owner_profit[h] + owner_subsidies[h] >= (i_rate + 1) * Costs_House_inv[h]; #owner_PIR_min * Costs_House_inv[h];
 
 subject to Owner_noSub{h in House}:
 owner_subsidies[h] = 0;

@@ -66,6 +66,7 @@ def get_actor_parameters(scenario, set_indexed, result, Scn_ID, Pareto_ID, iter 
     C_renters_mobility = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['C_renters_to_ECM_mobility']
     Costs_rep_district = result[Scn_ID][Pareto_ID][iter - 1]['df_Unit']['Costs_Unit_rep'].sum()
     DSO_reinforce = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['DSO_reinforce']['Network']
+    Cost_supply_district_mobility = result[Scn_ID][Pareto_ID][iter - 1]['df_District']['Cost_supply_district_mobility']
 
     params['owner_subsidies'] = owner_subsidies[h]
     params['renter_subsidies'] = renter_subsidies[h]
@@ -74,6 +75,7 @@ def get_actor_parameters(scenario, set_indexed, result, Scn_ID, Pareto_ID, iter 
     params['Costs_rep_district'] = Costs_rep_district
     params['DSO_reinforce'] = DSO_reinforce
     params['C_renters_mobility'] = C_renters_mobility[h]
+    params['Cost_supply_district_mobility'] = Cost_supply_district_mobility[h]
 
     lambdas = result[Scn_ID][Pareto_ID][iter - 1]["df_DW"]['lambda']
     df_sc_f = result[Scn_ID][Pareto_ID][iter - 1]["df_Actors_tariff_f"]["Cost_self_consumption"]["Electricity"]

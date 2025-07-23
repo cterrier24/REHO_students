@@ -80,8 +80,8 @@ def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
 
 
 if __name__ == '__main__':
-    for i in range(0,3):
-        for owner_PIR in [0.5]:
+    for i in range(0,1):
+        for renter_affordability in [0.7]:
             #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
             path = '/home/wang2/REHO_students'
             case_study = i  #Center: 0; Villa:1 ; Rural:2
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             scenario = dict()
             scenario['Objective'] = 'TOTEX'
             scenario['EMOO'] = {}
-            scenario['specific'] =['unidirectional_service','Renter_noSub']
+            scenario['specific'] =['unidirectional_service']
             scenario["name"] = "actors"
 
             # Choose energy system structure options
@@ -128,13 +128,13 @@ if __name__ == '__main__':
             era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
 
             parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46, "ff_EV": 1.56,
-                          'owner_PIR': owner_PIR, 'renter_ref': get_renter_param(path, neighborhood_type)}
+                          'renter_affordability': renter_affordability, 'renter_ref': get_renter_param(path, neighborhood_type)}
             set_indexed = {"Distances": ["short"]}
 
             units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
 
             reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
-                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 5},
+                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 6},
                                  solver="gurobiasl")
             reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
