@@ -4,6 +4,7 @@ from reho.model.actors_problem import *
 
 import math
 import time
+from scipy.stats import qmc
 
 def remove_nan_QBuilding(buildings_data):
     for bui in buildings_data["buildings_data"]:
@@ -80,75 +81,92 @@ def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
     return renter_series
 
 if __name__ == '__main__':
-    for i in range(0,3):
-        for owner_PIR in [0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7]:
-            #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
-            path = '/home/wang2/REHO_students'
-            case_study = i  #Center: 0; Villa:1 ; Rural:2
-            df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
-            neighborhood_type = df_case_study.loc[case_study]['case_study']
 
-            # Set building parameters
-            qbuildings_data = pd.read_pickle(path + f'/scripts/examples/results/data/QBuildings_{neighborhood_type}.pickle')
-            print(f"✅ QBuilding data {neighborhood_type} imported successfully.")
-            # Select clustering options for weather data
-            cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
+    for renter_affordability, i_rate in [[0.0187572 , 0.95704925],
+       [0.06008296, 0.74852435],
+       [0.09667693, 0.82600038],
+       [0.0437743 , 0.6012367 ],
+       [0.04274315, 0.75444953],
+       [0.08162992, 0.54586777],
+       [0.07302606, 0.90366302],
+       [0.02330948, 0.67883413],
+       [0.02836094, 0.86849569],
+       [0.06718315, 0.58123568],
+       [0.08677107, 0.96924332],
+       [0.0369872 , 0.69821476],
+       [0.05005631, 0.91587906],
+       [0.09136145, 0.62856171],
+       [0.06610292, 0.79691909],
+       [0.01317694, 0.5258258]]:
+            for i in range(0,3):
+                print( '✅✅✅✅RENTER AFFORDABILITY:',renter_affordability,'i=', i,'✅✅✅✅')
+                #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
+                path = '/home/wang2/REHO_students'
+                case_study = i  #Center: 0; Villa:1 ; Rural:2
+                df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
+                neighborhood_type = df_case_study.loc[case_study]['case_study']
 
-            # Set scenario
-            scenario = dict()
-            scenario['Objective'] = 'TOTEX'
-            scenario['EMOO'] = {}
-            scenario['specific'] =['unidirectional_service','Renter_noSub']
-            scenario["name"] = "actors"
+                # Set building parameters
+                qbuildings_data = pd.read_pickle(path + f'/scripts/examples/results/data/QBuildings_{neighborhood_type}.pickle')
+                print(f"✅ QBuilding data {neighborhood_type} imported successfully.")
+                # Select clustering options for weather data
+                cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
 
-            # Choose energy system structure options
-            scenario['exclude_units'] = ['Bike_district','ICE_district', 'ElectricBike_district']
-            scenario['enforce_units'] = []
+                # Set scenario
+                scenario = dict()
+                scenario['Objective'] = 'TOTEX'
+                scenario['EMOO'] = {}
+                scenario['specific'] =['unidirectional_service','Renter_noSub']
+                scenario["name"] = "actors"
 
-            # Set method options
-            method = {'actors_problem': True, "refurbishment": True, "parallel_computation": True,
-                      "save_streams": False, "save_timeseries": True, "save_data_input": True,"print_logs": True,
-                      'district-scale': True}
+                # Choose energy system structure options
+                scenario['exclude_units'] = ['Bike_district','ICE_district', 'ElectricBike_district']
+                scenario['enforce_units'] = []
 
-            # Initialize available units and grids
-            grids = infrastructure.initialize_grids({'Electricity': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 0.3},
-                                                     'NaturalGas': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
-                                                     'Gasoline': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
-                                                     'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 3}})
+                # Set method options
+                method = {'actors_problem': True, "refurbishment": True, "parallel_computation": True,
+                          "save_streams": False, "save_timeseries": True, "save_data_input": True,"print_logs": False,
+                          'district-scale': True}
 
-            # available capacities of networks [Electricity]
-            grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, 400, df_case_study.loc[case_study]['P_peak'] * 3,630, 1000, 2000, 4000])
-            grids["Mobility"]["ReinforcementOfNetwork"] = np.array([2000])
-            grids["Gasoline"]["ReinforcementOfNetwork"] = np.array([2000])
+                # Initialize available units and grids
+                grids = infrastructure.initialize_grids({'Electricity': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 0.3},
+                                                         'NaturalGas': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
+                                                         'Gasoline': {"Cost_demand_cst": 0.25, "Cost_supply_cst": 0.25},
+                                                         'Mobility': {"Cost_demand_cst": 0.1, "Cost_supply_cst": 3}})
 
-            # existing capacities of networks
-            Network_ext = pd.DataFrame([ df_case_study.loc[case_study]['P_peak'] * 3, 2000, 2000, 2000], index=["Electricity", "NaturalGas", "Gasoline", "Mobility"],
-                                       columns=["Network_ext"])
+                # available capacities of networks [Electricity]
+                grids["Electricity"]["ReinforcementOfNetwork"] = np.array([100, 250, 400, df_case_study.loc[case_study]['P_peak'] * 3,630, 1000, 2000, 4000])
+                grids["Mobility"]["ReinforcementOfNetwork"] = np.array([2000])
+                grids["Gasoline"]["ReinforcementOfNetwork"] = np.array([2000])
 
-            era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
+                # existing capacities of networks
+                Network_ext = pd.DataFrame([ df_case_study.loc[case_study]['P_peak'] * 3, 2000, 2000, 2000], index=["Electricity", "NaturalGas", "Gasoline", "Mobility"],
+                                           columns=["Network_ext"])
 
-            parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46, "ff_EV": 1.56,
-                          'owner_PIR': owner_PIR, 'renter_ref': get_renter_param(path, neighborhood_type)}
-            set_indexed = {"Distances": ["short"]}
+                era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
 
-            units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
+                parameters = {'Network_ext': Network_ext, "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46, "ff_EV": 1.56,
+                              'renter_affordability': renter_affordability, 'i_rate': i_rate, 'renter_ref': get_renter_param(path, neighborhood_type)}
+                set_indexed = {"Distances": ["short"]}
 
-            reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
-                                 cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 5},
-                                 solver="gurobiasl")
-            reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
+                units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
 
-            modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1, 1]},
-                                       index=['MD', 'PT', 'cars', 'EV_district'])
+                reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
+                                     cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 5},
+                                     solver="gurobiasl")
+                reho.parameters['renter_expense_max'] = actors.generate_renter_expense_max_new(qbuildings_data, income=70000)
 
-            reho.modal_split = modal_split
+                modal_split = pd.DataFrame({"min_short": [0.0, 0.0, 0.0, 0.0], "max_short": [0.1, 0.2, 1, 1]},
+                                           index=['MD', 'PT', 'cars', 'EV_district'])
 
-            bounds = {"Owners": [0.0, 0.0], "ECM": [0.0, 0]}
-            reho.sample_actors_epsilon(bounds=bounds, n_samples=1, ins_target=[0])
+                reho.modal_split = modal_split
 
-            # Run actor-based optimization
-            reho.actor_decomposition_optimization()
+                bounds = {"Owners": [0.0, 0.0], "ECM": [0.0, 0]}
+                reho.sample_actors_epsilon(bounds=bounds, n_samples=1, ins_target=[0])
 
-            # Save results
-            #reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS')
-            reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Owner{owner_PIR}_Actors_SCITAS_{time.strftime("%m%d%H%M")}')
+                # Run actor-based optimization
+                reho.actor_decomposition_optimization()
+
+                # Save results
+                #reho.save_results(format=["pickle"], filename=f'9b_{neighborhood_type}_Actors_SCITAS')
+                reho.save_results(format=["pickle"], filename=f'9d_{neighborhood_type}_i{i_rate}_r{renter_affordability}_Actors_SCITAS_{time.strftime("%m%d%H%M")}')
