@@ -81,7 +81,7 @@ def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
 
 if __name__ == '__main__':
     for i in range(0,3):
-        for renter_affordability in [0.8,0.85,0.9,0.95,1,1.05,1.1,1.15,1.2]:
+        for renter_affordability in [0.75,0.8,0.85,0.9,0.95,1,1.05,1.1,1,15]:
             print('✅RENTER SENSITIVITY✅✅RENTER SENSITIVITY✅✅RENTER SENSITIVITY✅✅RENTER SENSITIVITY✅✅RENTER SENSITIVITY✅')
             #path = '/Users/ziqian/Desktop/MA/EnergyScope/REHO'
             path = '/home/wang2/REHO_students'
