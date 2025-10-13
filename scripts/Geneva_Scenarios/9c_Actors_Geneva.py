@@ -10,7 +10,7 @@ if __name__ == '__main__':
     # i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
     # i_rate * DSO_reinforce;
 
-    for i in range(11,23):
+    for i in range(14,23):
         case_study = i
         df_case_study = pd.read_csv('data/case_study.csv')
         neighborhood_type = df_case_study.loc[case_study]['case_study']
@@ -18,11 +18,11 @@ if __name__ == '__main__':
         district_boundary = df_case_study.loc[case_study]['boundary']
         # Set building parameters
         qbuildings_data = pd.read_pickle('data/qbuildings_data_CH.pickle')[neighborhood_type]
-        # reader = QBuildingsReader()
-        # reader.establish_connection('Suisse')
-        # qbuildings_data = reader.read_db(district_boundary=district_boundary,
-        #                                district_id=int(df_case_study.loc[case_study]['id_neighborhood']))
-        # qbuildings_data = remove_nan_QBuilding(qbuildings_data)
+        #reader = QBuildingsReader()
+        #reader.establish_connection('Suisse')
+        #qbuildings_data = reader.read_db(district_boundary=district_boundary,
+        #                               district_id=int(df_case_study.loc[case_study]['id_neighborhood']), nb_buildings=2)
+        #qbuildings_data = remove_nan_QBuilding(qbuildings_data)
         print(f"✅ QBuilding data {neighborhood_type} imported successfully.")
         cluster = {'Location': 'Geneva', 'Attributes': ['T', 'I', 'W'], 'Periods': 10, 'PeriodDuration': 24}
 
@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         era = np.sum([qbuildings_data["buildings_data"][b]['ERA'] for b in qbuildings_data["buildings_data"]])
 
-        renter_ref = get_renter_param("", neighborhood_type)
+        renter_ref = get_renter_param("", neighborhood_type, ch=True)
 
         parameters = {'Network_ext': Network_ext,
                       "DailyDist": {'short': float(df_case_study.loc[case_study]['Distance'])}, "Population": era / 46,

@@ -21,7 +21,7 @@ def remove_nan_QBuilding(buildings_data):
             buildings_data["buildings_data"][bui]["T_comfort_min_0"] = 20
     return buildings_data
 
-def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
+def get_renter_param(base_path: str, neighborhood_type: str, ch: bool = False) -> pd.Series:
     """
     Compute the renter_ref series for a given neighborhood scenario.
 
@@ -36,9 +36,14 @@ def get_renter_param(base_path: str, neighborhood_type: str) -> pd.Series:
     - FileNotFoundError if the pickle file does not exist.
     """
     # Build the full pickle file path
-    file_path = (
-        f"results/9a_{neighborhood_type}_TOTEX_wo_El.pickle"
-    )
+    if ch:
+        file_path = (
+            f"results/CH/9a_{neighborhood_type}_TOTEX_wo_El.pickle"
+        )
+    else:
+        file_path = (
+            f"results/9a_{neighborhood_type}_TOTEX_wo_El.pickle"
+        )
     try:
         data = pd.read_pickle(file_path)
     except FileNotFoundError:
