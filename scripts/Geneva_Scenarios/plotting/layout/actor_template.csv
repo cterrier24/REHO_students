@@ -1,0 +1,89 @@
+Group,Bar,Stack,Value
+
+Center,Tenants,Electricity from Landlords,30
+Center,Tenants,Energy from ECM,15
+Center,Tenants,Mobility from ECM,12
+Center,Tenants,Other mobility expenses,5
+Center,Tenants,Subsidies to Tenants,-8
+Center,Landlords,Building equipment,20
+Center,Landlords,Electricity to Tenants,-30
+Center,Landlords,Electricity to ECM,-15
+Center,Landlords,Subsidies to Landlords,-5
+Center,ECM,District equipment,8
+Center,ECM,Electric vehicles,10
+Center,ECM,Electricity to DSO,-6
+Center,ECM,Electricity from DSO,6
+Center,ECM,Electricity from Landlords,15
+Center,ECM,Energy to Tenants,-30
+Center,ECM,Other energy from extern, -10
+Center,ECM,Mobility to Tenants,12
+Center,ECM,Subsidies to ECM,-2
+Center,DSO,Electricity purchase from ECM,45
+Center,DSO,Electricity purchase from Extern,45
+Center,DSO,Electricity sale to ECM, -45
+Center,DSO,Electricity sale to Extern, -45
+Center,DSO,Grid reinforcement,0
+Center,DSO,Subsidies to DSO,-3
+Center,Subsidies,Subsidies to Tenants,8
+Center,Subsidies,Subsidies to Landlords,5
+Center,Subsidies,Subsidies to ECM,2
+Center,Subsidies,Subsidies to DSO,3
+
+Villa,Tenants,Electricity from Landlords,28
+Villa,Tenants,Energy from ECM,13
+Villa,Tenants,Mobility from ECM,10
+Villa,Tenants,Other mobility expenses,4
+Villa,Tenants,Subsidies to Tenants,-7
+Villa,Landlords,Building equipment,18
+Villa,Landlords,Electricity to Tenants,-28
+Villa,Landlords,Electricity to ECM,-13
+Villa,Landlords,Subsidies to Landlords,-4
+Villa,ECM,District equipment,5
+Villa,ECM,Electric vehicles,10
+Villa,ECM,Electricity to DSO,-5
+Villa,ECM,Electricity from DSO,5
+Villa,ECM,Electricity from Landlords,13
+Villa,ECM,Energy to Tenants,-28
+Villa,ECM,Other energy from extern,10
+Villa,ECM,Mobility to Tenants,-1
+Villa,ECM,Subsidies to ECM,39
+Villa,DSO,Grid reinforcement,0
+Villa,DSO,Electricity purchase from ECM,40
+Villa,DSO,Electricity purchase from Extern,40
+Villa,DSO,Electricity sale to ECM, -40
+Villa,DSO,Electricity sale to Extern, -40
+Villa,DSO,Subsidies to DSO,-2
+Villa,Subsidies,Subsidies to Tenants,7
+Villa,Subsidies,Subsidies to Landlords,4
+Villa,Subsidies,Subsidies to ECM,1
+Villa,Subsidies,Subsidies to DSO,2
+
+Rural,Tenants,Electricity from Landlords,22
+Rural,Tenants,Energy from ECM,10
+Rural,Tenants,Mobility from ECM,7
+Rural,Tenants,Other mobility expenses,3
+Rural,Tenants,Subsidies to Tenants,-6
+Rural,Landlords,Building equipment,13
+Rural,Landlords,Electricity to Tenants,-22
+Rural,Landlords,Electricity to ECM,-10
+Rural,Landlords,Subsidies to Landlords,-2
+Rural,ECM,District equipment,2
+Rural,ECM,Electric vehicles,10
+Rural,ECM,Electricity to DSO,-8
+Rural,ECM,Electricity from DSO,10
+Rural,ECM,Electricity from Landlords,22
+Rural,ECM,Energy to Tenants,-7
+Rural,ECM,Other energy from extern,1
+Rural,ECM,Mobility to Tenants,-20
+Rural,ECM,Subsidies to ECM,-3
+Rural,DSO,Grid reinforcement,3
+Rural,DSO,Electricity purchase from ECM,30
+Rural,DSO,Electricity purchase from Extern,35
+Rural,DSO,Electricity sale to ECM, -32
+Rural,DSO,Electricity sale to Extern, -34
+Rural,DSO,Subsidies to DSO,-6
+Rural,Subsidies,Subsidies to Tenants,2
+Rural,Subsidies,Subsidies to Landlords,1
+Rural,Subsidies,Subsidies to ECM,1
+Rural,Subsidies,Subsidies to DSO,6
+,,,

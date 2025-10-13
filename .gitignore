@@ -319,6 +319,7 @@ reho/test/results/*
 # Scripts
 scripts/*
 !scripts/examples/
+!scripts/Geneva_Scenarios/
 *.json
 *.dat
 *.txt

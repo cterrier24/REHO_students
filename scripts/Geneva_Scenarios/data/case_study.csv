@@ -1,0 +1,24 @@
+case_study,id_neighborhood,boundary,Name,P_peak,Distance,ERA
+Center,9873,neighborhoods,Florissant,225,27.7,
+Villa,10012,neighborhoods,La Grand-Saconnes,89.13,32.9,
+Rural,10323,neighborhoods,Satigny,88.65,35.4,
+Urban_el,2889,transformers,Boulevard Helvétique,7427.340205,27.7,231225
+Low-rise_el,9953,transformers,Malagnou,213.159900,32.9,30827
+High-rise_el,9621,transformers,Palette,3521.962981,32.9,
+Countryside_el,9599,transformers,Saconnex-d’Arve,161.001716,35.4,
+Urban_GVA,9878,neighborhoods,Boulevard Helvétique,2427.324641,27.7,104680.37
+Low-rise_GVA,9757,neighborhoods,Malagnou,110.567003,32.9,15196.37
+High-rise_GVA,10384,neighborhoods,Palette,6847.682688,32.9,178166.77
+Countryside_GVA,10302,neighborhoods,Saconnex-d’Arve,162.552647,35.4,23413.27
+Geltwil,2753,neighborhoods,small lowland village,33.94,34.4,
+Bisikon,18989,neighborhoods,medium countryside village,78.658035,30.7,
+Liddes,15434,neighborhoods,medium alpine village,174.77,30.7,
+Wettingen,12429,neighborhoods,medium lowland city,428.639836,18.1,
+Vionnaz,13552,neighborhoods,big lowland village,134.226064,28.9,
+Basel,10253,neighborhoods,dense urban area,1414.789227,16.3,
+Litau,10409,neighborhoods,periurban area,188.422659,22.6,
+Finsterwald,16150,neighborhoods,small forest village,103.239777,34.4,
+Sunneberg,8723,neighborhoods,small lakeside village,78.602752,34.4,
+Sissach,17144,neighborhoods,small lowland city,180.717374,21.7,
+Schuepfen,8713,neighborhoods,medium forest village,124.689224,30.7,
+Zuerich,10720,neighborhoods,dense urban center,1958.643386,13.6,

@@ -1,0 +1,72 @@
+Name,EN_long,EN_short,FR_long,ColorPastel,NamePastel
+,,,,,
+CAPEX,Capital expenses,CAPEX,Coûts d'investissement,#007480,canard
+OPEX,Operational expenses,OPEX,Coûts opérationnels,#FEA993,salmon
+TOTEX,Total expenses,TOTEX,Coûts totaux,#7fa7c7,blue
+GWP,Global warming potential,GWP,Empreinte carbone équivalente,#737373,grey
+,,,,,
+Electricity_import,Electricity import,Elec in,Électricité (import),#007480,canard
+Electricity_export,Electricity export,Elec out,Électricité (export),#4d9ea6,canard_light
+NaturalGas_import,Natural gas import,NG,Gaz naturel (import),#413D3A,ardoise
+Gasoline_import,Gasoline import,GAS,Essence (import),#55552b,kaki
+,,,,,
+Boiler,Fossil-fuel boiler,BO,Chaudière fossile,#000000,dark
+NG_Boiler,Existing boiler,NGB,Chaudière à gaz,#413D3A,ardoise
+NG_Boiler_district,District gas boiler,NGB,Chaudière à gaz (district),#413D3A,ardoise
+,,,,,
+PV,PV panel,PV,Panneaux photovoltaïques,#ffd980,yellow_light
+PV_roof,PV roof,PV,PV toiture,#ffd980,yellow_light
+PV_facades,PV facade,PV,PV façade,#ffc94d,yellow_medium
+solar_value,Solar value,Solar,Électricité solaire,#4d9ea6,canard_light
+solar_premium,Solar premium,SC Premium,Premium auto-consommation,#ffd980,yellow_light
+Curtailment,PV curtailment,CU,PV Écrêtement,#664700,yellow_dark
+,,,,,
+HeatPump_Air,Heat pump (air),HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Geothermal,Heat pump (ground),HP geo,"Pompe à chaleur, géothermie",#B22222,bordeaux
+HeatPump_Geothermal_district, District HP geothermal,District HP geo,PAC géothermie (district),#FEA993,salmon
+,,,,,
+Battery,Battery,Bat,Batterie,#A57300,ocre
+Battery_district,District battery,Bat,Batterie (district),#A57300,ocre
+Battery_IP,Battery,Bat,Batterie,#A57300,ocre
+Battery_IP_district,District battery,Bat,Batterie (district),#A57300,ocre
+,,,,,
+Electricity,Electrical grid,Elec,Électricité,#007480,canard
+Electrical_appliances,Electrical appliances,EL,Électricité domestique,#007480,canard
+Electrical_consumption,Electricity,EL,Électricité consommée,#007480,canard
+Electrical_consumption_bp,Electricity (including storage),EL,Électricité consommée + stockage,#007480,canard
+PV_SC,Electricity self-consumption,Elec SC,Électricité (auto-consommation),#ffd980,yellow_light
+,,,,,
+SH,Space heating,SH,Chauffage,#FF8C00,orange
+SH_heat,Space heating,SH,Chauffage,#FF8C00,orange
+DHW,Domestic hot water,DHW,Eau chaude sanitaire,#B22222,bordeaux
+,,,,,
+Tank,Tank,Tank,Réservoir,#FF8C00,orange
+WaterTankSH,Water tank,WT (SH),Ballon d'eau (chauffage),#FF8C00,orange
+,,,,,
+AirConditioner,Air conditioner,AC,Climatiseur,#00008b,darkblue
+Cooling,Space cooling,SC,Demande en froid,#00008b,darkblue
+,,,,,
+Isolation,Thermal insulation,INS,Isolation,#69B58A,green
+Isolation_roof,Roof insulation,INS1,Isolation toiture,#a9d6bc,green_light
+Isolation_facade,Facade insulation,INS2,Isolation façade,#87c5a1,green_medium
+Isolation_full,Complete insulation,INS3,Isolation complète,#53ac7a,green_dark
+,,,,,
+ICE_district,ICE vehicle,ICE,Véhicule à combustion,#8B4513,saddlebrown
+Bike_district,Bikes,Bike,Vélos,#90EE90,lightgreen
+ElectricBike_district,Electric bikes,EBike,Vélos électriques,#00FF7F,springgreen
+Total_EV_fleet,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise
+EV_district,Electric vehicles,EVs,Véhicules électriques,#7AC5CD,turquoise
+EV_charger_district,EV charging station,EVchrg,Stations de recharge,#008080,teal
+PublicTransport,Public transportation,PT,Transports publics,#020035,nightblue
+Reinforcement,Grid reinforcement,GridReinf,Renforcement,#5A626B,grey
+,,,,,
+HeatPump_Air_10,Heat pump 10,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Air_50,Heat pump 50,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Air_400,Heat pump 400,HP air,"Pompe à chaleur, air",#FEA993,salmon
+HeatPump_Geothermal_10,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#B22222,bordeaux
+HeatPump_Geothermal_50,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#B22222,bordeaux
+HeatPump_Geothermal_400,Heat pump geothermal,HP geo,"Pompe à chaleur, géothermie",#B22222,bordeaux
+Battery_10,Battery 10,Bat,Batterie,#A57300,ocre
+Battery_100,Battery 100,Bat,Batterie,#A57300,ocre
+PV_20,PV panel 20,PV,Panneaux photovoltaïques,#ffd980,yellow_light
+PV_100,PV panel 100,PV,Panneaux photovoltaïques,#ffd980,yellow_light

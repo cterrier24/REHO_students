@@ -1,0 +1,33 @@
+Bar,Stack,Label,Color
+,,,
+Tenants,Electricity from Landlords,Electricity from Landlords,#1f77b4
+Tenants,Electricity from ECM,Electricity from ECM,#4682b4
+Tenants,Private mobility from ECM,Private mobility from ECM,#7AC5CD
+Tenants,Public mobility,Public mobility,#90c17b
+Tenants,Subsidies to Tenants,Subsidies to Tenants,#8e24aa
+,,,
+Landlords,Building equipment,Building equipment,#ffd980
+Landlords,Electricity to Tenants,Electricity to Tenants,#1976d2
+Landlords,Electricity to ECM,Electricity to ECM,#64b5f6
+Landlords,Subsidies to Landlords,Subsidies to Landlords,#b39ddb
+,,,
+ECM,District equipment,District equipment,#A57300
+ECM,Electric vehicles,Electric vehicles investment,#7AC5CD
+ECM,Electricity from DSO,Electricity from DSO,#0d47a1
+ECM,Electricity to DSO,Electricity to DSO,#42a5f5
+ECM,Electricity from Landlords,Electricity from Landlords,#90caf9
+ECM,Electricity to Tenants,Electricity to Tenants,#1976d2
+ECM,Mobility to Tenants,Mobility to Tenants,#7AC5CD
+ECM,Subsidies to ECM,Subsidies to ECM,#ce93d8
+,,,
+DSO,Electricity import,Electricity import,#bdbdbd
+DSO,Electricity export,Electricity export,#616060
+DSO,Electricity from ECM,Electricity from ECM,#42a5f5
+DSO,Electricity to ECM,Electricity to ECM,#0d47a1
+DSO,Grid reinforcement,Grid reinforcement,#757575
+DSO,Subsidies to DSO,Subsidies to DSO,#d1c4e9
+,,,
+Subsidies,Subsidies to Tenants,Subsidies to Tenants,#8e24aa
+Subsidies,Subsidies to Landlords,Subsidies to Landlords,#b39ddb
+Subsidies,Subsidies to ECM,Subsidies to ECM,#ce93d8
+Subsidies,Subsidies to DSO,Subsidies to DSO,#d1c4e9

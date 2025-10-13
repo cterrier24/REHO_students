@@ -71,8 +71,8 @@ subject to Renter_noSub{h in House}:
 renter_subsidies[h] = 0;
 
 subject to Renter_epsilon{h in House}: #nu_renters
-renter_expense[h] - renter_subsidies[h] <= renter_expense_max[h];
-#renter_expense[h] - renter_subsidies[h] <= renter_affordability * renter_ref[h];
+#renter_expense[h] - renter_subsidies[h] <= renter_expense_max[h];
+renter_expense[h] - renter_subsidies[h] <= renter_affordability * renter_ref[h];
 
 subject to obj_fct1:
 objective_functions["Renters"] = sum{h in House}(renter_expense[h]);
@@ -114,9 +114,9 @@ subject to Owner_profit_calc{h in House}:
 owner_profit[h] = C_op_renters_to_owners[h] + C_op_ECM_to_owners[h] - C_op_owners_to_ECM[h]; # - Costs_House_inv[h];
 
 subject to Owner_epsilon{h in House}: 
-#owner_profit[h] + owner_subsidies[h] >= (i_rate + 1) * Costs_House_inv[h]; 
+owner_profit[h] + owner_subsidies[h] >= (i_rate + 1) * Costs_House_inv[h]; 
 #owner_profit[h] + owner_subsidies[h] >= owner_PIR_min * Costs_House_inv[h];
-owner_profit[h] + owner_subsidies[h] >= -1e10;
+#owner_profit[h] + owner_subsidies[h] >= -1e10;
 
 
 subject to Owner_noSub{h in House}:
@@ -154,9 +154,9 @@ ECM_profit = sum{h in House} (C_op_renters_to_ECM[h] + C_renters_to_ECM_mobility
                   - C_op_ECM_with_extern - tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
 
 subject to ECM_epsilon:
-#ECM_profit + ECM_subsidies >= i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
+ECM_profit + ECM_subsidies >= i_rate * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
 #ECM_profit + ECM_subsidies >= ECM_profit_min * tau * (sum{u in Units} (Costs_Unit_inv[u]) + Costs_rep);
-ECM_profit + ECM_subsidies >= -1e10;
+#ECM_profit + ECM_subsidies >= -1e10;
 
 subject to obj_fct3:
 objective_functions["ECM"] = - ECM_profit;
@@ -182,8 +182,8 @@ subject to DSO_profit_calc:
 DSO_profit =  C_op_ECM_to_DSO - C_op_DSO_to_ECM - C_op_DSO_to_extern + C_op_extern_to_DSO - DSO_reinforce;
 
 subject to DSO_epsilon:
-#DSO_profit >= i_rate * DSO_reinforce ;
-DSO_profit >= -1e10;
+DSO_profit >= i_rate * DSO_reinforce ;
+#DSO_profit >= -1e10;
 
 subject to obj_fct4:
 objective_functions["DSO"] = - DSO_profit;
