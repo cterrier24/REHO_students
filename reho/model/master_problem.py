@@ -121,7 +121,7 @@ class MasterProblem:
 
         # TODO change the nomenclature of these parameters to semi-automate the separation between MP and SP: (ex: all MP parameters end with _MP)
         self.lists_MP = {"list_parameters_MP": ["Self_consumption", 'Uh', 'Uh_ins', 'ins_target', 'renter_subsidies_bound', 'renter_expense_max','ECM_profit_min',
-                                                'owner_PIR_max', 'owner_PIR_min','ECM_profit_min', 'EMOO_totex_renter','invest_willingness','inv_opt','renter_affordability',
+                                                'owner_PIR_max', 'owner_PIR_min','ECM_profit_min', 'EMOO_totex_renter','invest_willingness','renter_affordability',
                                                 'owner_PIR','Network_ext',
                                                 'monthly_grid_connection_cost',
                                                 "area_district", "velocity", "density", "delta_enthalpy", "cinv1_dhn", "cinv2_dhn", "Population",
@@ -636,7 +636,10 @@ class MasterProblem:
                 ampl_MP.getSet(str(s)).setValues(MP_set_indexed[s])
             elif isinstance(MP_set_indexed[s], dict):
                 for i, instance in ampl_MP.getSet(str(s)):
-                    instance.setValues(MP_set_indexed[s][i])
+                    try:
+                        instance.setValues(MP_set_indexed[s][i])
+                    except:
+                        instance.setValues(MP_set_indexed[s][i[0]])
             elif isinstance(MP_set_indexed[s], pd.DataFrame):
                 ampl_MP.setData(MP_set_indexed[s])
             else:

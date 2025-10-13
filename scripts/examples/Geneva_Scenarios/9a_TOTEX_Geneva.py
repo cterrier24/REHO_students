@@ -1,32 +1,13 @@
-from pickle import FALSE
-
 from reho.model.actors_problem import *
-
-import math
-
-def remove_nan_QBuilding(buildings_data):
-    for bui in buildings_data["buildings_data"]:
-        bui_class = buildings_data["buildings_data"][bui]["id_class"]
-        buildings_data["buildings_data"][bui]["id_class"] = buildings_data["buildings_data"][bui]["id_class"].replace("nan", "II")
-        buildings_data["buildings_data"][bui]["id_class"] = buildings_data["buildings_data"][bui]["id_class"].replace("VIII", "III")
-        buildings_data["buildings_data"][bui]["ratio"] = buildings_data["buildings_data"][bui]["ratio"].replace("nan", "0.0")
-        if bui_class != buildings_data["buildings_data"][bui]["id_class"]:
-            print(bui, "had nan class and was", bui_class)
-        if math.isnan(buildings_data["buildings_data"][bui]["U_h"]):
-            buildings_data["buildings_data"][bui]["U_h"] = 0.00181
-        if math.isnan(buildings_data["buildings_data"][bui]["HeatCapacity"]):
-            buildings_data["buildings_data"][bui]["HeatCapacity"] = 120
-        if math.isnan(buildings_data["buildings_data"][bui]["T_comfort_min_0"]):
-            buildings_data["buildings_data"][bui]["T_comfort_min_0"] = 20
-    return buildings_data
+from utils import remove_nan_QBuilding
 
 if __name__ == '__main__':
-    for i in range(0,3):
+    for i in range(0,3): #Case study number
         for owner_invest_willingness in [0.8, 0.9, 0.95]:
-            path = '/home/wang2/REHO_students'
             case_study = i  #Center: 0; Villa:1 ; Rural:2
-            df_case_study = pd.read_csv(path + '/scripts/examples/data/case_study.csv')
+            df_case_study = pd.read_csv('scripts/examples/Geneva_Scenarios/case_study.csv')
             neighborhood_type = df_case_study.loc[case_study]['case_study']
+
             # Set building parameters
             reader = QBuildingsReader()
             reader.establish_connection('Suisse')
@@ -73,7 +54,7 @@ if __name__ == '__main__':
                           'owner_invest_willingness': owner_invest_willingness}
             set_indexed = {"Distances": ["short"]}
 
-            units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data=path+"/scripts/examples/data/units_adapted.csv")
+            units = infrastructure.initialize_units(scenario, grids, district_data=True, building_data="scripts/examples/data/units_adapted.csv")
 
             reho = ActorsProblem(qbuildings_data=qbuildings_data, units=units, parameters=parameters, grids=grids,
                                  cluster=cluster, scenario=scenario, method=method, DW_params={'max_iter': 6},

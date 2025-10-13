@@ -63,13 +63,6 @@ var objective_ECM;
 var objective_DSO;
 
 var test{h in House};
-#subject to obj_test{h in House, p in Period, t in Time[p] }:
-#Grid_demand['Electricity',h,p,t] <= sum{up in UnitsOfType['PV'] inter UnitsOfHouse[h]} Units_supply['Electricity',up,p,t] 
-#                                    + sum{ub in UnitsOfType['Battery'] inter UnitsOfHouse[h]} Units_supply['Electricity',ub,p,t]; 
-
-#subject to obj_test2{h in House, p in Period, t in Time[p] }:
-#Grid_supply['Electricity',h,p,t] <= sum{j in MB_Units['Electricity',h]} Units_demand['Electricity',j,p,t] 
-#                                    + Domestic_electricity[h,p,t];
 
 
 subject to obj_renters{h in House}:
@@ -106,7 +99,7 @@ objective_DSO = sum{p in PeriodStandard, t in Time[p]}(0.35 * (Cost_supply_cst["
             - DSO_reinforce;
 
 subject to actors_costs_SP:
-cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) + sum{h in House} (nu_Owners[h] * objective_owners[h]) + nu_ECM * objective_ECM; # - nu_DSO * objective_DSO;
+cost_actors = sum{h in House} (nu_Renters[h] * objective_renters[h]) + sum{h in House} (nu_Owners[h] * objective_owners[h]); # nu_ECM * objective_ECM; # - nu_DSO * objective_DSO;
 
 #--------------------------------------------------------------------------------------------------------------------#
 # Decomposition

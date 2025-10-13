@@ -68,7 +68,7 @@ class ActorsProblem(REHO):
         return obj
 
 
-    def sample_actors_epsilon(self, bounds=None, n_samples=1, ins_target = [0]):
+    def sample_actors_epsilon(self, bounds=None, n_samples=1, ins_target = None):
         """
         Generate N samples of actor epsilon parameters and store them in `self.samples`.
         Produces a pandas DataFrame with columns:
@@ -100,12 +100,6 @@ class ActorsProblem(REHO):
         self.samples['ins_target'] = np.tile(ins_target, n_samples)
 
     def actor_decomposition_optimization(self):
-        """
-        Run the single_optimization with DWD for each sampled actor epsilon.
-
-        Parameters
-        ----------
-        """
         for ids in self.samples.index:
             self.iter = 0
             sample_param = self.samples.iloc[ids]

@@ -17,7 +17,7 @@ pyclustering
 pyproj
 python-dotenv
 pytest
-qmcpy
+#qmcpy
 requests
 SALib
 scipy
