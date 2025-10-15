@@ -14,7 +14,7 @@ pio.kaleido.scope.mathjax = None
 # Reference data from /results/{district_type}_district/plot_reference/
 district_type = 'GVA' # 'GVA' or 'el'
 
-path = f'../results'
+path = f'../results/'
 path_layout = 'layout/'
 
 ICE_vehicle_gwp = 5.6/10/1.6
